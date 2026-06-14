@@ -1,0 +1,6 @@
+{
+  "name": "Tacho",
+  "description": "Smart meal-planning and shopping-list app for Portuguese families.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
