@@ -1,17 +1,22 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AppState } from "../types";
 import { createEmptyWeekPlan } from "./engine";
-import { io, Socket } from "socket.io-client";
+import io from "socket.io-client";
+type Socket = ReturnType<typeof io>;
+import { updatePriceMeta } from "./pricing";
 
 const STORAGE_KEY = "tacho:state:v1";
 
 const defaultState: AppState = {
   peopleCount: 4,
+  adultsCount: 2,
+  children: [{ age: 8 }, { age: 12 }],
   weekPlan: createEmptyWeekPlan(),
   pantry: [],
   selectedSupermarkets: ["Continente", "Auchan"],
   boughtItems: [],
   sharedRoomId: null,
+  menuHistory: [],
 };
 
 export function useStore() {
@@ -19,7 +24,27 @@ export function useStore() {
     try {
       const item = window.localStorage.getItem(STORAGE_KEY);
       if (item) {
-        return JSON.parse(item);
+        const parsed = JSON.parse(item);
+        if (parsed.adultsCount === undefined) {
+          parsed.adultsCount = parsed.peopleCount > 2 ? 2 : parsed.peopleCount;
+          parsed.children =
+            parsed.peopleCount > 2
+              ? Array.from({ length: parsed.peopleCount - 2 }).map(() => ({
+                  age: 10,
+                }))
+              : [];
+        }
+        if (parsed.weekPlan) {
+          parsed.weekPlan = parsed.weekPlan.slice(0, 7).map((d: any) => ({
+             ...d,
+             pequeno_almoco: d.pequeno_almoco || null,
+             lanche: d.lanche || null,
+          }));
+        }
+        if (!parsed.menuHistory) {
+          parsed.menuHistory = [];
+        }
+        return parsed;
       }
     } catch (error) {
       console.warn("Error reading localStorage", error);
@@ -31,8 +56,22 @@ export function useStore() {
   const isUpdatingFromSocket = useRef(false);
 
   useEffect(() => {
+    // Fetch initial prices
+    fetch("/api/prices/meta")
+      .then((r) => r.json())
+      .then((d) => {
+        updatePriceMeta(d.multiplier, d.lastScrapedAt);
+        setState((s) => ({ ...s }));
+      })
+      .catch(console.error);
+
     // Connect to server
     socketRef.current = io();
+
+    socketRef.current.on("prices-updated", (data: any) => {
+      updatePriceMeta(data.multiplier, data.lastScrapedAt);
+      setState((s) => ({ ...s }));
+    });
 
     socketRef.current.on("state-sync", (newState: AppState) => {
       isUpdatingFromSocket.current = true;

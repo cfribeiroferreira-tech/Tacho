@@ -101,7 +101,7 @@ export const recipesP2: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Queijo mozarela",
+        name: "Queijo mozzarella",
         quantity: 150,
         unit: "g",
         section: "Laticínios e Ovos",
@@ -141,7 +141,7 @@ export const recipesP2: Recipe[] = [
         name: "Massa quebrada",
         quantity: 1,
         unit: "un",
-        section: "Congelados",
+        section: "Mercearia",
       },
       {
         name: "Alho-francês",
@@ -217,9 +217,7 @@ export const recipesP2: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Alface",
-        quantity: 1,
-        unit: "molho",
+        name: "Alface", quantity: 0.25, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Tomate", quantity: 1, unit: "un", section: "Frutas e Legumes" },
@@ -244,7 +242,7 @@ export const recipesP2: Recipe[] = [
         name: "Medalhões de pescada",
         quantity: 4,
         unit: "un",
-        section: "Congelados",
+        section: "Peixaria",
       },
       { name: "Batata", quantity: 3, unit: "un", section: "Frutas e Legumes" },
       { name: "Cenoura", quantity: 2, unit: "un", section: "Frutas e Legumes" },
@@ -290,9 +288,7 @@ export const recipesP2: Recipe[] = [
       },
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
@@ -317,9 +313,7 @@ export const recipesP2: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -377,7 +371,7 @@ export const recipesP2: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Queijo mozarela",
+        name: "Queijo mozzarella",
         quantity: 100,
         unit: "g",
         section: "Laticínios e Ovos",
@@ -400,7 +394,7 @@ export const recipesP2: Recipe[] = [
     kcalPerServing: 410,
     tags: ["Vegetariano", "Vegan", "Leve"],
     ingredients: [
-      { name: "Tofu", quantity: 200, unit: "g", section: "Laticínios e Ovos" },
+      { name: "Tofu", quantity: 200, unit: "g", section: "Alternativas Vegetais" },
       { name: "Quinoa", quantity: 100, unit: "g", section: "Mercearia" },
       {
         name: "Cenoura ralada",
@@ -452,7 +446,7 @@ export const recipesP2: Recipe[] = [
     tags: ["Peixe", "Rápido"],
     ingredients: [
       { name: "Esparguete", quantity: 150, unit: "g", section: "Mercearia" },
-      { name: "Camarão", quantity: 200, unit: "g", section: "Congelados" },
+      { name: "Camarão", quantity: 200, unit: "g", section: "Peixaria" },
       {
         name: "Alho",
         quantity: 2,
@@ -461,9 +455,7 @@ export const recipesP2: Recipe[] = [
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -481,9 +473,7 @@ export const recipesP2: Recipe[] = [
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],

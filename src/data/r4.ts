@@ -128,7 +128,7 @@ export const recipesP4: Recipe[] = [
         name: "Mistura de marisco",
         quantity: 500,
         unit: "g",
-        section: "Congelados",
+        section: "Peixaria",
       },
       {
         name: "Arroz carolino",
@@ -241,9 +241,7 @@ export const recipesP4: Recipe[] = [
       },
       { name: "Pimento", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -265,7 +263,7 @@ export const recipesP4: Recipe[] = [
       },
       { name: "Tomate pelado", quantity: 200, unit: "g", section: "Mercearia" },
       {
-        name: "Queijo mozarela",
+        name: "Queijo mozzarella",
         quantity: 100,
         unit: "g",
         section: "Laticínios e Ovos",
@@ -365,13 +363,11 @@ export const recipesP4: Recipe[] = [
     kcalPerServing: 180,
     tags: ["Sopa", "Vegetariano", "Vegan", "Leve"],
     ingredients: [
-      { name: "Ervilhas", quantity: 500, unit: "g", section: "Congelados" },
+      { name: "Ervilhas", quantity: 500, unit: "g", section: "Frutas e Legumes" },
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       { name: "Batata", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Hortelã",
-        quantity: 1,
-        unit: "molho",
+        name: "Hortelã", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
@@ -396,9 +392,7 @@ export const recipesP4: Recipe[] = [
       { name: "Tomate pelado", quantity: 200, unit: "g", section: "Mercearia" },
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -442,7 +436,7 @@ export const recipesP4: Recipe[] = [
         name: "Tentáculos de pota",
         quantity: 800,
         unit: "g",
-        section: "Congelados",
+        section: "Peixaria",
       },
       {
         name: "Batata a murro",
@@ -458,9 +452,7 @@ export const recipesP4: Recipe[] = [
       },
       { name: "Azeite", quantity: 5, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -520,9 +512,7 @@ export const recipesP4: Recipe[] = [
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Manjericão",
-        quantity: 0.5,
-        unit: "molho",
+        name: "Manjericão", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],

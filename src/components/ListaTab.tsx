@@ -1,12 +1,13 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   AppState,
   AISLE_ORDER,
   Supermarket,
   SUPERMARKET_LINKS,
 } from "../types";
-import { generateShoppingList } from "../utils/engine";
-import { getEstimatedPrice } from "../utils/pricing";
+import { generateShoppingList, getAllIngredients, removeAccents } from "../utils/engine";
+import type { AggregatedItem } from "../utils/engine";
+import { getEstimatedPrice, getLastScrapedAt } from "../utils/pricing";
 import {
   Copy,
   ExternalLink,
@@ -16,8 +17,13 @@ import {
   Lightbulb,
   Share2,
   Users,
+  Download,
+  Plus,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { AdSlot } from "./AdSlot";
 
 const TIPS = [
   "Verifica as promoções da semana nos folhetos digitais antes de ir às compras.",
@@ -58,14 +64,53 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
     }
   };
 
-  const hasItems = Object.values(grouped).some((arr: any) => arr.length > 0);
+  const allIngredients = useMemo(() => {
+    return getAllIngredients();
+  }, []);
+
+  const [customItemInput, setCustomItemInput] = useState("");
+  const [showItemSuggestions, setShowItemSuggestions] = useState(false);
+
+  const customItemSuggestions = useMemo(() => {
+    if (!customItemInput.trim()) return [];
+    const query = removeAccents(customItemInput);
+    return allIngredients
+      .filter((i) => removeAccents(i).includes(query))
+      .slice(0, 5);
+  }, [customItemInput, allIngredients]);
+
+  const addCustomItem = (e: React.FormEvent, itemValue?: string) => {
+    e.preventDefault();
+    const valueToAdd = itemValue || customItemInput.trim();
+    if (!valueToAdd) return;
+    const current = appState.customShoppingItems || [];
+    if (!current.includes(valueToAdd)) {
+        updateState({ customShoppingItems: [...current, valueToAdd] });
+    }
+    setCustomItemInput("");
+    setShowItemSuggestions(false);
+  };
+
+  const removeCustomItem = (itemToRemove: string) => {
+    const current = appState.customShoppingItems || [];
+    updateState({ customShoppingItems: current.filter(i => i !== itemToRemove) });
+    // Also remove from bought items if it was bought
+    const currentBought = appState.boughtItems;
+    if (currentBought.includes(`custom-${itemToRemove}`)) {
+      updateState({ boughtItems: currentBought.filter(i => i !== `custom-${itemToRemove}`) });
+    }
+  };
+
+  const hasItems = (Object.values(grouped) as AggregatedItem[][]).some(
+    (arr) => arr.length > 0,
+  ) || (appState.customShoppingItems && appState.customShoppingItems.length > 0);
 
   const { totalContinente, totalAuchan, recommendedMarket } = useMemo(() => {
     let continente = 0;
     let auchan = 0;
 
-    Object.values(grouped).forEach((items: any) => {
-      items.forEach((item: any) => {
+    (Object.values(grouped) as AggregatedItem[][]).forEach((items) => {
+      items.forEach((item) => {
         const isBought = appState.boughtItems.includes(item.id);
         if (!isBought) {
           continente += getEstimatedPrice(
@@ -94,7 +139,12 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
   }, [grouped, appState.boughtItems]);
 
   const handleShareText = async () => {
-    let text = `Lista de Compras (${appState.peopleCount} pessoas)\n\n`;
+    const familyStr =
+      appState.children && appState.children.length > 0
+        ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
+        : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`;
+
+    let text = `Lista de Compras (${familyStr})\n\n`;
 
     AISLE_ORDER.forEach((aisle) => {
       const items = grouped[aisle];
@@ -130,6 +180,92 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(20);
+    doc.text("Lista de Compras", 14, 22);
+
+    doc.setFontSize(11);
+    const familyStr =
+      appState.children && appState.children.length > 0
+        ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
+        : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`;
+
+    doc.text(`Para ${familyStr}`, 14, 30);
+
+    let yPos = 40;
+
+    AISLE_ORDER.forEach((aisle) => {
+      const items = grouped[aisle];
+      if (!items || items.length === 0) return;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(aisle.toUpperCase(), 14, yPos);
+      yPos += 4;
+
+      const tableData: any[][] = [];
+      for (let i = 0; i < items.length; i += 2) {
+        const item1 = items[i];
+        const item2 = items[i + 1];
+
+        const row = [
+          `[  ] ${item1.name}`,
+          `${item1.totalQuantity} ${item1.unit}`,
+        ];
+
+        if (item2) {
+          row.push(`[  ] ${item2.name}`, `${item2.totalQuantity} ${item2.unit}`);
+        } else {
+          row.push("", "");
+        }
+
+        tableData.push(row);
+      }
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [],
+        body: tableData,
+        theme: "plain",
+        styles: { fontSize: 10, cellPadding: 1.5, minCellHeight: 8 },
+        columnStyles: {
+          0: { cellWidth: 70 },
+          1: { cellWidth: 20, halign: "right" },
+          2: { cellWidth: 70 },
+          3: { cellWidth: 20, halign: "right" },
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 8;
+      
+      // Page break if needed
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+    });
+
+    if (excludedCount > 0) {
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text(
+        `Nota: ${excludedCount} itens excluidos por ja estarem na despensa.`,
+        14,
+        yPos,
+      );
+    }
+
+    doc.save("lista-compras-tacho.pdf");
+    showToast("PDF descarregado!");
+  };
+
   const getMarketLink = (market: Supermarket, query: string) => {
     const template = SUPERMARKET_LINKS[market];
     return template
@@ -150,46 +286,72 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
             )}
           </h1>
           <p className="text-[var(--color-ink-soft)] text-sm">
-            {appState.peopleCount}{" "}
-            {appState.peopleCount === 1 ? "pessoa" : "pessoas"}
+            {appState.children && appState.children.length > 0
+              ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
+              : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`}
           </p>
         </div>
         <div className="flex space-x-2">
           {hasItems && (
-            <button
-              onClick={handleShareText}
-              className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)]"
-            >
-              <Share2 size={20} />
-            </button>
+            <>
+              <button
+                onClick={handleExportPDF}
+                className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)]"
+                title="Exportar como PDF"
+                aria-label="Exportar como PDF"
+              >
+                <Download size={20} />
+              </button>
+              <button
+                onClick={handleShareText}
+                className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)]"
+                title="Partilhar Texto"
+                aria-label="Partilhar Texto"
+              >
+                <Share2 size={20} />
+              </button>
+            </>
           )}
           <button
             onClick={() => setShowRoomModal(true)}
             className={`p-2.5 bg-white border ${appState.sharedRoomId ? "border-[var(--color-brand)] text-[var(--color-brand)] bg-[#E6EEE8]" : "border-[var(--color-line)] text-[var(--color-ink)]"} rounded-xl`}
+            title={
+              appState.sharedRoomId
+                ? "Gerir Sincronização"
+                : "Sincronizar Lista"
+            }
+            aria-label={
+              appState.sharedRoomId
+                ? "Gerir Sincronização"
+                : "Sincronizar Lista"
+            }
           >
             <Users size={20} />
           </button>
           <button
             onClick={() => setShowMarkets(true)}
             className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)]"
+            title="Configurar Supermercados"
+            aria-label="Configurar Supermercados"
           >
             <Settings size={20} />
           </button>
         </div>
       </div>
 
-      {!hasItems ? (
-        <div className="text-center py-20 px-6 bg-white rounded-3xl border border-[var(--color-line)]">
+      {!hasItems && (
+        <div className="text-center py-12 px-6 bg-white rounded-3xl border border-[var(--color-line)] mb-8 mt-4">
           <div className="text-4xl mb-4">🛒</div>
           <h3 className="font-display font-bold text-xl mb-2">Lista vazia</h3>
-          <p className="text-[var(--color-ink-soft)] text-sm mb-6">
+          <p className="text-[var(--color-ink-soft)] text-sm">
             Adiciona receitas ao plano da semana para gerar uma lista de
-            compras.
+            compras, ou começa a adicionar itens manualmente abaixo.
           </p>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {/* Price Estimator MVP */}
+      )}
+
+      <div className="space-y-8">
+          {/* Price Estimator */}
           {(totalContinente > 0 || totalAuchan > 0) && (
             <div className="bg-white border border-[var(--color-line)] rounded-2xl p-4 shadow-sm overflow-hidden mb-8">
               <h4 className="font-bold text-[var(--color-ink)] mb-3 text-sm flex items-center">
@@ -197,8 +359,8 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
                   💰
                 </span>
                 Estimativa de Custo
-                <span className="ml-auto text-[10px] bg-[var(--color-sand)] px-2 py-0.5 rounded text-[var(--color-ink-soft)] font-medium">
-                  MVP
+                <span className="ml-auto text-[10px] bg-[var(--color-brand)]/10 text-[var(--color-brand)] px-2 py-0.5 rounded font-bold">
+                  Automação a correr diariamente (12:00)
                 </span>
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -244,25 +406,28 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
             </div>
           )}
 
-          {AISLE_ORDER.map((aisle) => {
+          {AISLE_ORDER.flatMap((aisle, aisleIdx) => {
             const items = grouped[aisle];
-            if (!items || items.length === 0) return null;
+            if (!items || items.length === 0) return [];
 
             const aisleIcons: Record<string, string> = {
               "Frutas e Legumes": "🥦",
               Talho: "🥩",
               Peixaria: "🐟",
               "Laticínios e Ovos": "🥛",
+              "Alternativas Vegetais": "🌱",
               Mercearia: "🥫",
-              Congelados: "🧊",
+              Padaria: "🍞",
+              Bebidas: "🥤",
             };
 
             const allBought = items.every((item) =>
               appState.boughtItems.includes(item.id),
             );
 
-            return (
-              <div key={aisle} className="scroll-mt-6">
+            return [
+              ...(aisleIdx === 2 ? [<AdSlot key={`ad-${aisleIdx}`} type="rectangle" className="mb-8" />] : []),
+              <div key={`${aisle}-${aisleIdx}`} className="scroll-mt-6">
                 <div className="flex items-center mb-3 px-1 sticky top-16 bg-[var(--color-paper)]/90 backdrop-blur-md z-10 py-2">
                   <span className="text-2xl mr-2">
                     {aisleIcons[aisle] || "🛒"}
@@ -285,7 +450,7 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
                     const isBought = appState.boughtItems.includes(item.id);
                     return (
                       <div
-                        key={item.id}
+                        key={`${item.id}-${idx}`}
                         className={`p-4 flex items-start gap-3 transition-colors ${idx !== items.length - 1 ? "border-b border-[var(--color-line)]" : ""} ${isBought ? "bg-[var(--color-paper)]/50" : ""}`}
                       >
                         <button
@@ -327,9 +492,9 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
                               <div className="flex flex-wrap gap-2 mt-3">
                                 {appState.selectedSupermarkets
                                   .filter((market) => SUPERMARKET_LINKS[market])
-                                  .map((market) => (
+                                  .map((market, marketIdx) => (
                                     <a
-                                      key={market}
+                                      key={`${market}-${marketIdx}`}
                                       href={getMarketLink(market, item.name)}
                                       target="_blank"
                                       rel="noopener noreferrer"
@@ -350,8 +515,92 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
                   })}
                 </div>
               </div>
-            );
+            ];
           })}
+
+          {appState.customShoppingItems && appState.customShoppingItems.length > 0 && (
+            <div className="scroll-mt-6">
+              <div className="flex items-center mb-3 px-1 sticky top-16 bg-[var(--color-paper)]/90 backdrop-blur-md z-10 py-2">
+                <span className="text-2xl mr-2">📌</span>
+                <h3 className="font-bold text-xl transition-colors text-[var(--color-brand)]">
+                  Outros
+                </h3>
+              </div>
+              <div className="bg-white border border-[var(--color-line)] rounded-2xl overflow-hidden shadow-sm shadow-[var(--color-line)]">
+                <div className="divide-y divide-[var(--color-line)]">
+                  {[...appState.customShoppingItems].sort((a,b) => a.localeCompare(b, "pt")).map((item, idxx) => {
+                    const isBought = appState.boughtItems.includes(`custom-${item}`);
+                    return (
+                      <div
+                        key={`custom-${item}-${idxx}`}
+                        onClick={() => toggleBought(`custom-${item}`)}
+                        className={`flex items-center justify-between p-4 cursor-pointer transition-colors hover:bg-gray-50/50 ${isBought ? "opacity-50 bg-gray-50/80" : ""}`}
+                      >
+                        <div className="flex flex-col">
+                          <span className={`font-semibold text-sm transition-all ${isBought ? "text-[var(--color-ink-soft)] line-through decoration-[var(--color-line)] decoration-2" : "text-[var(--color-ink)]"}`}>
+                            {item}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeCustomItem(item);
+                            }}
+                            className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                          </button>
+                          <div className={`transition-all ${isBought ? "text-[var(--color-brand)] scale-110" : "text-[var(--color-ink-soft)]/30 hover:text-[var(--color-brand)]/50"}`}>
+                            {isBought ? <CheckCircle2 size={24} className="fill-[var(--color-brand)]/10" /> : <Circle size={24} strokeWidth={2} />}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white border text-sm font-medium border-[var(--color-line)] rounded-2xl p-4 shadow-sm relative">
+            <form onSubmit={addCustomItem} className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Adicionar ingrediente extra..."
+                value={customItemInput}
+                onChange={(e) => {
+                  setCustomItemInput(e.target.value);
+                  setShowItemSuggestions(true);
+                }}
+                onFocus={() => setShowItemSuggestions(true)}
+                className="flex-1 px-3 py-2 border border-[var(--color-line)] rounded-xl outline-none focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)] transition-all bg-transparent"
+              />
+              <button
+                type="submit"
+                disabled={!customItemInput.trim()}
+                className="px-4 py-2 bg-[var(--color-brand)] text-white rounded-xl font-bold disabled:opacity-50"
+              >
+                Adicionar
+              </button>
+            </form>
+            
+            {showItemSuggestions && customItemSuggestions.length > 0 && (
+              <div className="absolute z-10 left-4 right-4 mt-2 bg-white border border-[var(--color-line)] rounded-xl shadow-lg overflow-hidden">
+                {customItemSuggestions.map((item, idx) => (
+                  <button
+                    key={`suggest-${item}-${idx}`}
+                    type="button"
+                    onClick={(e) => addCustomItem(e, item)}
+                    className="w-full text-left px-4 py-3 hover:bg-[var(--color-sand)] active:bg-[var(--color-line)] border-b last:border-b-0 border-[var(--color-line)] transition-colors flex items-center space-x-3"
+                  >
+                    <Plus size={16} className="text-[var(--color-ink-soft)]" />
+                    <span className="font-medium text-[var(--color-ink)]">{item}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {excludedCount > 0 && (
             <div className="bg-[var(--color-sand)] rounded-2xl p-4 text-sm text-[var(--color-ink-soft)] font-medium">
@@ -379,19 +628,8 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
             </div>
           </div>
 
-          <div className="mt-6 mb-4 text-center">
-            <a
-              href="https://forms.gle/test-feedback"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center space-x-2 text-[var(--color-brand)] font-semibold text-sm bg-[#E6EEE8] px-6 py-3 rounded-full hover:opacity-80 transition-opacity"
-            >
-              <span>Dar Feedback do MVP</span>
-              <ExternalLink size={16} />
-            </a>
-          </div>
+          <div className="mt-6 mb-4 text-center"></div>
         </div>
-      )}
 
       {/* Room Modal */}
       <AnimatePresence>
@@ -419,7 +657,17 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
   );
 }
 
-function RoomSettingsModal({ appState, updateState, onClose, showToast }: any) {
+function RoomSettingsModal({
+  appState,
+  updateState,
+  onClose,
+  showToast,
+}: {
+  appState: AppState;
+  updateState: (updates: Partial<AppState>) => void;
+  onClose: () => void;
+  showToast: (msg: string) => void;
+}) {
   const [roomIdInput, setRoomIdInput] = useState("");
 
   const generateRoomId = () => {
@@ -555,7 +803,15 @@ function RoomSettingsModal({ appState, updateState, onClose, showToast }: any) {
   );
 }
 
-function MarketsModal({ appState, updateState, onClose }: any) {
+function MarketsModal({
+  appState,
+  updateState,
+  onClose,
+}: {
+  appState: AppState;
+  updateState: (updates: Partial<AppState>) => void;
+  onClose: () => void;
+}) {
   const allMarkets: Supermarket[] = ["Continente", "Auchan"];
 
   const toggleMarket = (market: Supermarket) => {
@@ -591,11 +847,11 @@ function MarketsModal({ appState, updateState, onClose }: any) {
         </p>
 
         <div className="space-y-3 mb-6">
-          {allMarkets.map((market) => {
+          {allMarkets.map((market, marketIdx) => {
             const isSelected = appState.selectedSupermarkets.includes(market);
             return (
               <button
-                key={market}
+                key={`${market}-${marketIdx}`}
                 onClick={() => toggleMarket(market)}
                 className={`w-full flex justify-between items-center py-3.5 px-4 rounded-xl font-medium text-sm transition-all border ${
                   isSelected

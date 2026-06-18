@@ -80,7 +80,7 @@ export const recipesP6: Recipe[] = [
         section: "Laticínios e Ovos",
       },
       {
-        name: "Iogurte grego natural",
+        name: "Iogurte",
         quantity: 1,
         unit: "un",
         section: "Laticínios e Ovos",
@@ -95,7 +95,7 @@ export const recipesP6: Recipe[] = [
         name: "Frutos vermelhos",
         quantity: 50,
         unit: "g",
-        section: "Congelados",
+        section: "Frutas e Legumes",
       },
     ],
   },
@@ -177,7 +177,7 @@ export const recipesP6: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Fatias de peito de peru",
+        name: "Fiambre de peito de peru",
         quantity: 3,
         unit: "fatias",
         section: "Talho",
@@ -189,13 +189,11 @@ export const recipesP6: Recipe[] = [
         section: "Laticínios e Ovos",
       },
       {
-        name: "Alface",
-        quantity: 3,
-        unit: "folhas",
+        name: "Alface", quantity: 0.25, unit: "un",
         section: "Frutas e Legumes",
       },
       {
-        name: "Tomate em rodelas",
+        name: "Tomate",
         quantity: 0.5,
         unit: "un",
         section: "Frutas e Legumes",
@@ -251,7 +249,7 @@ export const recipesP6: Recipe[] = [
         name: "Medalhões de pescada",
         quantity: 4,
         unit: "un",
-        section: "Congelados",
+        section: "Peixaria",
       },
       {
         name: "Curgete (Zoodles)",
@@ -287,7 +285,7 @@ export const recipesP6: Recipe[] = [
         name: "Tofu firme",
         quantity: 250,
         unit: "g",
-        section: "Laticínios e Ovos",
+        section: "Alternativas Vegetais",
       },
       {
         name: "Cebola",
@@ -308,9 +306,7 @@ export const recipesP6: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Salsa picada",
-        quantity: 1,
-        unit: "c.sopa",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -431,9 +427,7 @@ export const recipesP6: Recipe[] = [
         section: "Laticínios e Ovos",
       },
       {
-        name: "Salsa picada",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       {
@@ -460,15 +454,13 @@ export const recipesP6: Recipe[] = [
         section: "Talho",
       },
       {
-        name: "Folhas grandes de alface iceberg",
-        quantity: 4,
-        unit: "folhas",
+        name: "Alface iceberg", quantity: 0.25, unit: "un",
         section: "Frutas e Legumes",
       },
       {
-        name: "Rodelas de tomate",
+        name: "Tomate",
         quantity: 4,
-        unit: "rodela",
+        unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Picles", quantity: 4, unit: "un", section: "Mercearia" },
@@ -514,7 +506,7 @@ export const recipesP6: Recipe[] = [
         section: "Mercearia",
       },
       {
-        name: "Queijo mozarela light ralado",
+        name: "Queijo mozzarella ralado",
         quantity: 50,
         unit: "g",
         section: "Laticínios e Ovos",

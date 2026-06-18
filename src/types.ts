@@ -10,7 +10,19 @@ export type Category =
   | "Conforto"
   | "Pequeno-almoço"
   | "Fit"
-  | "Familiar";
+  | "Familiar"
+  | "Lanche"
+  | "Praia"
+  | "Doce"
+  | "Bebida"
+  | "Saudável"
+  | "Sanduíche"
+  | "Quiche"
+  | "Almoço"
+  | "Económico"
+  | "Especial"
+  | "Snack"
+  | "Fim de Semana";
 
 export type Supermarket = "Continente" | "Auchan";
 
@@ -24,16 +36,20 @@ export type Aisle =
   | "Talho"
   | "Peixaria"
   | "Laticínios e Ovos"
+  | "Alternativas Vegetais"
   | "Mercearia"
-  | "Congelados";
+  | "Padaria"
+  | "Bebidas";
 
 export const AISLE_ORDER: Aisle[] = [
   "Frutas e Legumes",
   "Talho",
   "Peixaria",
   "Laticínios e Ovos",
+  "Alternativas Vegetais",
   "Mercearia",
-  "Congelados",
+  "Padaria",
+  "Bebidas",
 ];
 
 export interface Ingredient {
@@ -66,22 +82,45 @@ export type DayOfWeek =
 
 export interface PlannedMeal {
   id: string; // unique instance id
-  recipeId: string; // reference to local db
+  recipeId?: string; // reference to local db
+  customRecipe?: any; // AI generated recipe
 }
 
 export interface DayPlan {
   day: DayOfWeek;
+  pequeno_almoco: PlannedMeal | null;
   almoco: PlannedMeal | null;
+  lanche: PlannedMeal | null;
   jantar: PlannedMeal | null;
 }
 
+export interface MenuHistoryItem {
+  id: string;
+  date: string;
+  weekPlan: DayPlan[];
+  tag?: string;
+  calories?: number;
+}
+
 export interface AppState {
-  peopleCount: number;
+  peopleCount: number; // Keep for backwards compatibility, or maybe just total people
+  adultsCount: number;
+  children: { age: number }[];
   weekPlan: DayPlan[];
   pantry: string[]; // names of marked items
   selectedSupermarkets: Supermarket[];
   boughtItems: string[]; // for tracking checked items in list
+  customShoppingItems?: string[]; // user-added items
   sharedRoomId?: string | null;
+  menuHistory?: MenuHistoryItem[];
+  pendingRecipeSelection?: {
+    day: DayOfWeek;
+    meal: "pequeno_almoco" | "almoco" | "lanche" | "jantar";
+  };
+  generatorConfig?: {
+    focus: string;
+    mealTypes: ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[];
+  };
 }
 
 export type Tab = "receitas" | "semana" | "despensa" | "lista";

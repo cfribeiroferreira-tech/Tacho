@@ -27,6 +27,18 @@ export const BASE_PRICES: Record<string, number> = {
   leite: 0.9,
 };
 
+let currentGlobalMultiplier = 1.0;
+let rawLastScrapedAt = new Date().toISOString();
+
+export function updatePriceMeta(multiplier: number, lastScrapedAt: string) {
+  currentGlobalMultiplier = multiplier;
+  rawLastScrapedAt = lastScrapedAt;
+}
+
+export function getLastScrapedAt() {
+  return rawLastScrapedAt;
+}
+
 export function getEstimatedPrice(
   itemName: string,
   quantity: number,
@@ -73,5 +85,9 @@ export function getEstimatedPrice(
     variation = ((hash % 5) - 2) * -0.03;
   }
 
-  return Math.max(0.1, basePrice * multiplier * (1 + variation));
+  // Apply the global multiplier which is randomized hourly by the cron
+  return Math.max(
+    0.1,
+    basePrice * multiplier * (1 + variation) * currentGlobalMultiplier,
+  );
 }

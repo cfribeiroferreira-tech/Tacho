@@ -166,7 +166,7 @@ export const recipesP3: Recipe[] = [
     kcalPerServing: 310,
     tags: ["Vegetariano", "Vegan", "Rápido", "Leve"],
     ingredients: [
-      { name: "Tofu", quantity: 200, unit: "g", section: "Laticínios e Ovos" },
+      { name: "Tofu", quantity: 200, unit: "g", section: "Alternativas Vegetais" },
       {
         name: "Espargos",
         quantity: 1,
@@ -206,9 +206,7 @@ export const recipesP3: Recipe[] = [
       },
       { name: "Azeite", quantity: 4, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -362,16 +360,14 @@ export const recipesP3: Recipe[] = [
       { name: "Pimento", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       { name: "Azeite", quantity: 3, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
   },
   {
     id: "r56",
-    name: "Iogurte com Fruta",
+    name: "Iogurte",
     emoji: "🍨",
     time: 5,
     baseServings: 1,
@@ -379,7 +375,7 @@ export const recipesP3: Recipe[] = [
     tags: ["Pequeno-almoço", "Vegetariano", "Rápido"],
     ingredients: [
       {
-        name: "Iogurte natural",
+        name: "Iogurte",
         quantity: 1,
         unit: "un",
         section: "Laticínios e Ovos",

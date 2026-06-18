@@ -58,9 +58,9 @@ export function RecipeDetailModal({
               {recipe.kcalPerServing} kcal ({badge.label})
               <Info size={12} className="ml-1 opacity-80" />
             </button>
-            {recipe.tags.map((tag: string) => (
+            {recipe.tags.map((tag: string, idx: number) => (
               <span
-                key={tag}
+                key={`${tag}-${idx}`}
                 className="text-xs px-3 py-1 bg-[var(--color-sand)] text-[var(--color-ink)] rounded-full border border-[var(--color-line)]"
               >
                 {tag}
@@ -155,7 +155,7 @@ function DayMealPicker({
     "Domingo",
   ];
 
-  const handleSelect = (day: string, meal: "almoco" | "jantar") => {
+  const handleSelect = (day: string, meal: "pequeno_almoco" | "almoco" | "lanche" | "jantar") => {
     const updatedPlan = [...appState.weekPlan];
     const dayIndex = updatedPlan.findIndex((d) => d.day === day);
     if (dayIndex > -1) {
@@ -186,15 +186,27 @@ function DayMealPicker({
       >
         <h3 className="font-display font-bold text-xl mb-4">Para quando?</h3>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {days.map((day) => (
-            <div key={day}>
+          {days.map((day, idx) => (
+            <div key={`${day}-${idx}`}>
               <div className="font-medium mb-2">{day}</div>
               <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleSelect(day, "pequeno_almoco")}
+                  className="py-2.5 rounded-xl border border-[var(--color-line)] hover:bg-[var(--color-brand-soft)] transition-colors text-sm font-medium"
+                >
+                  P. Almoço
+                </button>
                 <button
                   onClick={() => handleSelect(day, "almoco")}
                   className="py-2.5 rounded-xl border border-[var(--color-line)] hover:bg-[var(--color-brand-soft)] transition-colors text-sm font-medium"
                 >
                   Almoço
+                </button>
+                <button
+                  onClick={() => handleSelect(day, "lanche")}
+                  className="py-2.5 rounded-xl border border-[var(--color-line)] hover:bg-[var(--color-brand-soft)] transition-colors text-sm font-medium"
+                >
+                  Lanche
                 </button>
                 <button
                   onClick={() => handleSelect(day, "jantar")}

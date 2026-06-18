@@ -19,9 +19,7 @@ export const recipesP5: Recipe[] = [
       },
       { name: "Pimento", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 3, unit: "c.sopa", section: "Mercearia" },
@@ -41,7 +39,7 @@ export const recipesP5: Recipe[] = [
         name: "Camarão descascado",
         quantity: 200,
         unit: "g",
-        section: "Congelados",
+        section: "Peixaria",
       },
       {
         name: "Tomate cereja",
@@ -77,9 +75,7 @@ export const recipesP5: Recipe[] = [
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       { name: "Ovos", quantity: 3, unit: "un", section: "Laticínios e Ovos" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -138,9 +134,7 @@ export const recipesP5: Recipe[] = [
       },
       { name: "Cenoura", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
@@ -207,13 +201,11 @@ export const recipesP5: Recipe[] = [
     kcalPerServing: 420,
     tags: ["Vegetariano", "Conforto"],
     ingredients: [
-      { name: "Favas", quantity: 300, unit: "g", section: "Congelados" },
+      { name: "Favas", quantity: 300, unit: "g", section: "Frutas e Legumes" },
       { name: "Ovos", quantity: 2, unit: "un", section: "Laticínios e Ovos" },
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 2, unit: "c.sopa", section: "Mercearia" },
@@ -253,9 +245,7 @@ export const recipesP5: Recipe[] = [
         section: "Frutas e Legumes",
       },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Azeite", quantity: 3, unit: "c.sopa", section: "Mercearia" },
@@ -270,7 +260,7 @@ export const recipesP5: Recipe[] = [
     kcalPerServing: 420,
     tags: ["Peixe", "Conforto"],
     ingredients: [
-      { name: "Camarão", quantity: 400, unit: "g", section: "Congelados" },
+      { name: "Camarão", quantity: 400, unit: "g", section: "Peixaria" },
       {
         name: "Pão de mistura",
         quantity: 300,
@@ -284,9 +274,7 @@ export const recipesP5: Recipe[] = [
         section: "Frutas e Legumes",
       },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
       { name: "Ovos", quantity: 2, unit: "un", section: "Laticínios e Ovos" },
@@ -316,9 +304,7 @@ export const recipesP5: Recipe[] = [
       },
       { name: "Azeite", quantity: 4, unit: "c.sopa", section: "Mercearia" },
       {
-        name: "Coentros",
-        quantity: 1,
-        unit: "molho",
+        name: "Coentros", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -517,9 +503,7 @@ export const recipesP5: Recipe[] = [
       { name: "Cebola", quantity: 1, unit: "un", section: "Frutas e Legumes" },
       { name: "Ovos", quantity: 2, unit: "un", section: "Laticínios e Ovos" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],

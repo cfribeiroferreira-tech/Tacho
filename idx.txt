@@ -1,0 +1,183 @@
+src/components/DespensaTab.tsx-145-        {appState.pantry
+src/components/DespensaTab.tsx-146-          .filter((i) => !COMMON_PANTRY_ITEMS.includes(i))
+src/components/DespensaTab.tsx:147:          .map((item, idx) => {
+src/components/DespensaTab.tsx-148-            const isNeeded = neededThisWeek.has(item.toLowerCase());
+src/components/DespensaTab.tsx-149-            return (
+src/components/DespensaTab.tsx-150-              <button
+src/components/DespensaTab.tsx:151:                key={`${item}-${idx}`}
+src/components/DespensaTab.tsx-152-                onClick={() => toggleItem(item)}
+src/components/DespensaTab.tsx-153-                className="relative px-4 py-2 rounded-full font-medium text-sm border transition-colors bg-[var(--color-brand)] text-white border-[var(--color-brand)]"
+--
+src/components/DespensaTab.tsx-176-        {searchResults.length > 0 && (
+src/components/DespensaTab.tsx-177-          <div className="absolute z-10 w-full mt-2 bg-white border border-[var(--color-line)] rounded-xl shadow-lg overflow-hidden">
+src/components/DespensaTab.tsx:178:            {searchResults.map((item, idx) => (
+src/components/DespensaTab.tsx-179-              <button
+src/components/DespensaTab.tsx:180:                key={`${item}-${idx}`}
+src/components/DespensaTab.tsx-181-                onClick={() => {
+src/components/DespensaTab.tsx-182-                  toggleItem(item);
+--
+src/components/DespensaTab.tsx-209-        {recommendations.length > 0 ? (
+src/components/DespensaTab.tsx-210-          <div className="space-y-3">
+src/components/DespensaTab.tsx:211:            {recommendations.map(({ recipe, matchScore, total }, idx) => {
+src/components/DespensaTab.tsx-212-              const percentage = Math.round((matchScore / total) * 100);
+src/components/DespensaTab.tsx-213-              return (
+src/components/DespensaTab.tsx-214-                <div
+src/components/DespensaTab.tsx:215:                  key={`${recipe.id}-${idx}`}
+src/components/DespensaTab.tsx-216-                  onClick={() => setViewingRecipe(recipe)}
+src/components/DespensaTab.tsx-217-                  className="bg-white border border-[var(--color-line)] rounded-2xl p-4 flex items-center cursor-pointer active:scale-[0.98] transition-transform"
+--
+src/components/ListaTab.tsx-378-                </div>
+src/components/ListaTab.tsx-379-                <div className="bg-white border border-[var(--color-line)] rounded-2xl overflow-hidden shadow-sm">
+src/components/ListaTab.tsx:380:                  {items.map((item, idx) => {
+src/components/ListaTab.tsx-381-                    const isBought = appState.boughtItems.includes(item.id);
+src/components/ListaTab.tsx-382-                    return (
+src/components/ListaTab.tsx-383-                      <div
+src/components/ListaTab.tsx:384:                        key={`${item.id}-${idx}`}
+src/components/ListaTab.tsx:385:                        className={`p-4 flex items-start gap-3 transition-colors ${idx !== items.length - 1 ? "border-b border-[var(--color-line)]" : ""} ${isBought ? "bg-[var(--color-paper)]/50" : ""}`}
+src/components/ListaTab.tsx-386-                      >
+src/components/ListaTab.tsx-387-                        <button
+--
+src/components/ReceitasTab.tsx-73-
+src/components/ReceitasTab.tsx-74-      <div className="flex overflow-x-auto pb-4 -mx-4 px-4 space-x-2 scrollbar-hide">
+src/components/ReceitasTab.tsx:75:        {CATEGORIES.map((cat, idx) => (
+src/components/ReceitasTab.tsx-76-          <button
+src/components/ReceitasTab.tsx:77:            key={`${cat}-${idx}`}
+src/components/ReceitasTab.tsx-78-            onClick={() => setActiveCat(cat)}
+src/components/ReceitasTab.tsx-79-            className={`whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+--
+src/components/ReceitasTab.tsx-89-
+src/components/ReceitasTab.tsx-90-      <div className="grid grid-cols-2 gap-3 pb-6 mt-2">
+src/components/ReceitasTab.tsx:91:        {filtered.map((recipe, idx) => (
+src/components/ReceitasTab.tsx-92-          <RecipeCard
+src/components/ReceitasTab.tsx:93:            key={`${recipe.id}-${idx}`}
+src/components/ReceitasTab.tsx-94-            recipe={recipe}
+src/components/ReceitasTab.tsx-95-            onClick={() => setSelectedRecipe(recipe)}
+--
+src/components/RecipeDetailModal.tsx-59-              <Info size={12} className="ml-1 opacity-80" />
+src/components/RecipeDetailModal.tsx-60-            </button>
+src/components/RecipeDetailModal.tsx:61:            {recipe.tags.map((tag: string, idx: number) => (
+src/components/RecipeDetailModal.tsx-62-              <span
+src/components/RecipeDetailModal.tsx:63:                key={`${tag}-${idx}`}
+src/components/RecipeDetailModal.tsx-64-                className="text-xs px-3 py-1 bg-[var(--color-sand)] text-[var(--color-ink)] rounded-full border border-[var(--color-line)]"
+src/components/RecipeDetailModal.tsx-65-              >
+--
+src/components/RecipeDetailModal.tsx-187-        <h3 className="font-display font-bold text-xl mb-4">Para quando?</h3>
+src/components/RecipeDetailModal.tsx-188-        <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+src/components/RecipeDetailModal.tsx:189:          {days.map((day, idx) => (
+src/components/RecipeDetailModal.tsx:190:            <div key={`${day}-${idx}`}>
+src/components/RecipeDetailModal.tsx-191-              <div className="font-medium mb-2">{day}</div>
+src/components/RecipeDetailModal.tsx-192-              <div className="grid grid-cols-2 gap-2">
+--
+src/components/SemanaTab.tsx-88-      
+src/components/SemanaTab.tsx-89-      const mergePlan = (plan: any[]) => {
+src/components/SemanaTab.tsx:90:        return appState.weekPlan.map((day, idx) => {
+src/components/SemanaTab.tsx:91:          const newDay = plan[idx] || {};
+src/components/SemanaTab.tsx-92-          return {
+src/components/SemanaTab.tsx-93-            ...day,
+--
+src/components/SemanaTab.tsx-114-    saveCurrentToHistory();
+src/components/SemanaTab.tsx-115-    const mergePlan = (generatedPlan: any[]) => {
+src/components/SemanaTab.tsx:116:      return appState.weekPlan.map((day, idx) => {
+src/components/SemanaTab.tsx:117:        const newDay = generatedPlan[idx] || {};
+src/components/SemanaTab.tsx-118-        return {
+src/components/SemanaTab.tsx-119-          ...day,
+--
+src/components/SemanaTab.tsx-174-
+src/components/SemanaTab.tsx-175-      <div className="space-y-4">
+src/components/SemanaTab.tsx:176:        {appState.weekPlan.map((dayPlan, idx) => {
+src/components/SemanaTab.tsx-177-          let dayKcal = 0;
+src/components/SemanaTab.tsx-178-          const computeKcal = (meal: any) => {
+--
+src/components/SemanaTab.tsx-189-          return (
+src/components/SemanaTab.tsx-190-            <div
+src/components/SemanaTab.tsx:191:              key={`${dayPlan.day}-${idx}`}
+src/components/SemanaTab.tsx-192-              className="bg-white border border-[var(--color-line)] rounded-2xl p-4 shadow-sm"
+src/components/SemanaTab.tsx-193-            >
+--
+src/components/SemanaTab.tsx-207-                  label="P. Almoço"
+src/components/SemanaTab.tsx-208-                  meal={dayPlan.pequeno_almoco}
+src/components/SemanaTab.tsx:209:                  onRemove={() => removeMeal(idx, "pequeno_almoco")}
+src/components/SemanaTab.tsx-210-                  onAdd={() => goToTab("receitas")}
+src/components/SemanaTab.tsx-211-                  onViewRecipe={setViewingRecipe}
+--
+src/components/SemanaTab.tsx-214-                  label="Almoço"
+src/components/SemanaTab.tsx-215-                  meal={dayPlan.almoco}
+src/components/SemanaTab.tsx:216:                  onRemove={() => removeMeal(idx, "almoco")}
+src/components/SemanaTab.tsx-217-                  onAdd={() => goToTab("receitas")}
+src/components/SemanaTab.tsx-218-                  onViewRecipe={setViewingRecipe}
+--
+src/components/SemanaTab.tsx-221-                  label="Lanche"
+src/components/SemanaTab.tsx-222-                  meal={dayPlan.lanche}
+src/components/SemanaTab.tsx:223:                  onRemove={() => removeMeal(idx, "lanche")}
+src/components/SemanaTab.tsx-224-                  onAdd={() => goToTab("receitas")}
+src/components/SemanaTab.tsx-225-                  onViewRecipe={setViewingRecipe}
+--
+src/components/SemanaTab.tsx-228-                  label="Jantar"
+src/components/SemanaTab.tsx-229-                  meal={dayPlan.jantar}
+src/components/SemanaTab.tsx:230:                  onRemove={() => removeMeal(idx, "jantar")}
+src/components/SemanaTab.tsx-231-                  onAdd={() => goToTab("receitas")}
+src/components/SemanaTab.tsx-232-                  onViewRecipe={setViewingRecipe}
+--
+src/components/SemanaTab.tsx-464-
+src/components/SemanaTab.tsx-465-            <div className="space-y-3">
+src/components/SemanaTab.tsx:466:              {children.map((child, idx) => (
+src/components/SemanaTab.tsx-467-                <div
+src/components/SemanaTab.tsx:468:                  key={idx}
+src/components/SemanaTab.tsx-469-                  className="flex items-center justify-between bg-white border border-[var(--color-line)] p-3 rounded-xl"
+src/components/SemanaTab.tsx-470-                >
+src/components/SemanaTab.tsx-471-                  <span className="text-sm font-medium">
+src/components/SemanaTab.tsx:472:                    Idade da criança {idx + 1}
+src/components/SemanaTab.tsx-473-                  </span>
+src/components/SemanaTab.tsx-474-                  <div className="flex items-center space-x-3">
+--
+src/components/SemanaTab.tsx-480-                      onChange={(e) => {
+src/components/SemanaTab.tsx-481-                        const newChildren = [...children];
+src/components/SemanaTab.tsx:482:                        newChildren[idx] = {
+src/components/SemanaTab.tsx-483-                          age: parseInt(e.target.value) || 0,
+src/components/SemanaTab.tsx-484-                        };
+--
+src/components/SemanaTab.tsx-490-                      onClick={() => {
+src/components/SemanaTab.tsx-491-                        const newChildren = [...children];
+src/components/SemanaTab.tsx:492:                        newChildren.splice(idx, 1);
+src/components/SemanaTab.tsx-493-                        setChildren(newChildren);
+src/components/SemanaTab.tsx-494-                      }}
+--
+src/components/SemanaTab.tsx-560-          <h4 className="font-bold mb-3">Refeições a preencher</h4>
+src/components/SemanaTab.tsx-561-          <div className="grid grid-cols-2 gap-2">
+src/components/SemanaTab.tsx:562:            {["Pequeno-almoço", "Almoço", "Lanche", "Jantar"].map((type, idx) => (
+src/components/SemanaTab.tsx-563-                <button
+src/components/SemanaTab.tsx:564:                  key={`${type}-${idx}`}
+src/components/SemanaTab.tsx-565-                  onClick={() => {
+src/components/SemanaTab.tsx-566-                    setMealTypes(prev =>
+--
+src/components/SemanaTab.tsx-580-        <h4 className="font-bold mb-3">Escolhe o Foco</h4>
+src/components/SemanaTab.tsx-581-        <div className="grid grid-cols-3 gap-2 mb-6">
+src/components/SemanaTab.tsx:582:          {options.map((opt, idx) => (
+src/components/SemanaTab.tsx-583-            <button
+src/components/SemanaTab.tsx:584:              key={`${opt}-${idx}`}
+src/components/SemanaTab.tsx-585-              onClick={() => setFocus(opt)}
+src/components/SemanaTab.tsx-586-              className={`border py-2 px-3 rounded-xl font-medium text-xs text-center transition-all ${focus === opt ? "bg-[var(--color-brand)] text-white border-[var(--color-brand)] shadow-sm" : "bg-white text-[var(--color-ink)] border-[var(--color-line)] hover:border-[var(--color-brand)]"}`}
+--
+src/components/SemanaTab.tsx-658-        ) : (
+src/components/SemanaTab.tsx-659-          <div className="space-y-4">
+src/components/SemanaTab.tsx:660:            {sorted.map((item: any, idx: number) => {
+src/components/SemanaTab.tsx-661-              const d = new Date(item.date);
+src/components/SemanaTab.tsx-662-              const dateStr = d.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+--
+src/components/SemanaTab.tsx-674-
+src/components/SemanaTab.tsx-675-              return (
+src/components/SemanaTab.tsx:676:                <div key={`${item.id}-${idx}`} className="bg-white border border-[var(--color-line)] p-4 rounded-xl shadow-sm">
+src/components/SemanaTab.tsx-677-                  <div className="flex justify-between items-start mb-2">
+src/components/SemanaTab.tsx-678-                    <div className="font-bold text-[var(--color-ink)]">Salvo em {dateStr}</div>
+--
+src/App.tsx-80-      <nav className="fixed bottom-0 w-full max-w-lg mx-auto bg-white border-t border-[var(--color-line)] pb-safe z-40">
+src/App.tsx-81-        <div className="flex justify-around items-center h-16">
+src/App.tsx:82:          {navItems.map((item, idx) => {
+src/App.tsx-83-            const isActive = activeTab === item.id;
+src/App.tsx-84-            let badgeCount = 0;
+--
+src/App.tsx-94-            return (
+src/App.tsx-95-              <button
+src/App.tsx:96:                key={`${item.id}-${idx}`}
+src/App.tsx-97-                onClick={() => setActiveTab(item.id)}
+src/App.tsx-98-                className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${isActive ? "text-[var(--color-brand)]" : "text-[var(--color-ink-soft)]"}`}

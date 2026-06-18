@@ -6,6 +6,9 @@ import { recipesP4 } from "./r4";
 import { recipesP5 } from "./r5";
 import { recipesP6 } from "./r6";
 import { recipesP7 } from "./r7";
+import { recipesP8 } from "./r8";
+import { recipesP9 } from "./r9";
+import { recipesP10 } from "./r10";
 
 const allRecipes: Recipe[] = [
   ...recipesP1,
@@ -15,6 +18,9 @@ const allRecipes: Recipe[] = [
   ...recipesP5,
   ...recipesP6,
   ...recipesP7,
+  ...recipesP8,
+  ...recipesP9,
+  ...recipesP10,
 ];
 
 allRecipes.forEach((r) => {
@@ -32,6 +38,16 @@ allRecipes.forEach((r) => {
     let isSalad =
       r.name.toLowerCase().includes("salada") ||
       (r.tags.includes("Leve") && r.emoji === "🥗");
+    let isGrilled =
+      r.name.toLowerCase().includes("grelhado") ||
+      r.name.toLowerCase().includes("grelhados") ||
+      r.name.toLowerCase().includes("grelhada") ||
+      r.name.toLowerCase().includes("brasa");
+    let isBoiled =
+      r.name.toLowerCase().includes("cozido") ||
+      r.name.toLowerCase().includes("cozida") ||
+      r.name.toLowerCase().includes("cozidos") ||
+      r.name.toLowerCase().includes("vapor");
 
     if (isSalad) {
       r.instructions = [
@@ -55,6 +71,22 @@ allRecipes.forEach((r) => {
         `Tempera tudo generosamente a gosto com sal, pimenta, azeite e/ou outras especiarias da tua preferência.`,
         `Leva a assar no forno pré-aquecido durante a maior parte dos ${r.time} minutos de receita.`,
         `Verifica a cozedura, retira do forno quando estiver com um aspeto dourado e apetitoso e serve!`,
+      ];
+    } else if (isGrilled) {
+      r.instructions = [
+        `Aquece a grelha, grelhador ou chapa e pincela levemente com azeite se necessário.`,
+        `Tempera os ingredientes principais (${mainVars}) com um pouco de sal, alho ou limão.`,
+        `Grelha de ambos os lados até ficarem com marca de grelha e cozinhados por dentro.`,
+        `Prepara os acompanhamentos adicionais em simultâneo.`,
+        `Serve quente, finalizando com um fio de azeite e ervas frescas a gosto.`,
+      ];
+    } else if (isBoiled) {
+      r.instructions = [
+        `Lava e prepara os ingredientes: ${names.join(", ")}.`,
+        `Leva uma panela generosa com água e sal ao lume.`,
+        `Quando ferver, introduz os ingredientes principais e deixa cozer (o tempo total da receita é ~${r.time}m).`,
+        `Verifica a cozedura dos elementos mais rijos com a ponta de um garfo.`,
+        `Escorre bem a água de cozedura e serve, temperando com um fio de azeite e vinagre a gosto.`,
       ];
     } else {
       r.instructions = [

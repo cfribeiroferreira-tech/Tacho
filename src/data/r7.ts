@@ -86,7 +86,7 @@ export const recipesP7: Recipe[] = [
         name: "Douradinhos de peixe",
         quantity: 12,
         unit: "un",
-        section: "Congelados",
+        section: "Mercearia",
       },
       { name: "Arroz agulha", quantity: 300, unit: "g", section: "Mercearia" },
       {
@@ -121,7 +121,7 @@ export const recipesP7: Recipe[] = [
         section: "Frutas e Legumes",
       },
       {
-        name: "Polpa de Tomate",
+        name: "Polpa de tomate",
         quantity: 200,
         unit: "ml",
         section: "Mercearia",
@@ -249,13 +249,13 @@ export const recipesP7: Recipe[] = [
         section: "Laticínios e Ovos",
       },
       {
-        name: "Polpa de tomate com óregãos",
+        name: "Polpa de tomate",
         quantity: 200,
         unit: "ml",
         section: "Mercearia",
       },
       {
-        name: "Queijo Mozzarella Ralado",
+        name: "Queijo mozzarella ralado",
         quantity: 200,
         unit: "g",
         section: "Laticínios e Ovos",

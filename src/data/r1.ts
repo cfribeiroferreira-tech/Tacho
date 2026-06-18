@@ -163,9 +163,7 @@ export const recipesP1: Recipe[] = [
       { name: "Cebola", quantity: 2, unit: "un", section: "Frutas e Legumes" },
       { name: "Ovos", quantity: 6, unit: "un", section: "Laticínios e Ovos" },
       {
-        name: "Salsa",
-        quantity: 1,
-        unit: "molho",
+        name: "Salsa", quantity: 1, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
@@ -187,7 +185,7 @@ export const recipesP1: Recipe[] = [
       },
       { name: "Batata", quantity: 4, unit: "un", section: "Frutas e Legumes" },
       { name: "Cenoura", quantity: 2, unit: "un", section: "Frutas e Legumes" },
-      { name: "Ervilhas", quantity: 150, unit: "g", section: "Congelados" },
+      { name: "Ervilhas", quantity: 150, unit: "g", section: "Frutas e Legumes" },
       { name: "Tomate pelado", quantity: 200, unit: "g", section: "Mercearia" },
     ],
   },
@@ -251,12 +249,12 @@ export const recipesP1: Recipe[] = [
     kcalPerServing: 350,
     tags: ["Vegetariano", "Vegan", "Rápido", "Leve"],
     ingredients: [
-      { name: "Tofu", quantity: 200, unit: "g", section: "Laticínios e Ovos" },
+      { name: "Tofu", quantity: 200, unit: "g", section: "Alternativas Vegetais" },
       {
         name: "Mistura asiática",
         quantity: 300,
         unit: "g",
-        section: "Congelados",
+        section: "Frutas e Legumes",
       },
       {
         name: "Molho de soja",
@@ -305,9 +303,7 @@ export const recipesP1: Recipe[] = [
         section: "Frutas e Legumes",
       },
       {
-        name: "Alface",
-        quantity: 1,
-        unit: "molho",
+        name: "Alface", quantity: 0.25, unit: "un",
         section: "Frutas e Legumes",
       },
     ],
