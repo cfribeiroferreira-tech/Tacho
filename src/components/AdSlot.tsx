@@ -9,18 +9,45 @@ interface AdSlotProps {
 }
 
 export function AdSlot({ type = "banner", className = "", slotId = "" }: AdSlotProps) {
-  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
+  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || "ca-pub-4264060085761397";
   const adLoaded = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (clientId && !adLoaded.current) {
-      try {
-        const adsbygoogle = (window as any).adsbygoogle || [];
-        adsbygoogle.push({});
-        adLoaded.current = true;
-      } catch (e) {
-        console.error("AdSense Error", e);
+      if (!document.getElementById("adsense-script")) {
+        const script = document.createElement("script");
+        script.id = "adsense-script";
+        script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
+        script.async = true;
+        script.crossOrigin = "anonymous";
+        document.head.appendChild(script);
       }
+      
+      const pushAd = () => {
+        if (!containerRef.current) return;
+        
+        // Wait until container has width to prevent "No slot size for availableWidth=0"
+        if (containerRef.current.offsetWidth === 0) {
+          setTimeout(pushAd, 200);
+          return;
+        }
+
+        try {
+          const adsbygoogle = (window as any).adsbygoogle || [];
+          adsbygoogle.push({});
+          adLoaded.current = true;
+        } catch (e: any) {
+          if (!e.message?.includes("All 'ins' elements")) {
+            console.error("AdSense Error", e);
+          }
+        }
+      };
+
+      // Delay execution to let DOM render
+      const timeoutId = setTimeout(pushAd, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [clientId, type]);
 
@@ -42,6 +69,7 @@ export function AdSlot({ type = "banner", className = "", slotId = "" }: AdSlotP
 
   return (
     <div
+      ref={containerRef}
       className={`w-full flex items-center justify-center my-4 overflow-hidden relative ${className}`}
       style={{ minHeight: type === "banner" ? "60px" : "250px" }}
     >
