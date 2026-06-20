@@ -29,7 +29,7 @@ export default function LandingPage({ goToTab }: LandingPageProps) {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-y-auto bg-black text-white selection:bg-orange-500/30">
+    <div className="relative min-h-screen w-full bg-black text-white selection:bg-orange-500/30">
       {/* Background Image */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/80 to-gray-900/40 z-10 mix-blend-multiply" />

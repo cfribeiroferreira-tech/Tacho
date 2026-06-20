@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AppState, Category, Recipe } from "../types";
 import { recipes } from "../data/recipes";
-import { Search, Plus, X, Clock, Info, ExternalLink } from "lucide-react";
+import { Search, Plus, X, Clock, Info, ExternalLink, ChevronLeft } from "lucide-react";
 import { getCalorieBadgeLevel, removeAccents } from "../utils/engine";
 import { AnimatePresence, motion } from "motion/react";
 import { RecipeDetailModal } from "./RecipeDetailModal";
@@ -67,6 +67,12 @@ export default function ReceitasTab({
 
   return (
     <div className="pt-6 px-4">
+      <button onClick={() => goToTab('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+        <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
+          <ChevronLeft size={16} />
+        </div>
+        Voltar ao Início
+      </button>
       <div className="mb-4">
         {appState.pendingRecipeSelection ? (
           <div className="bg-[var(--color-brand-soft)]/50 border border-[var(--color-brand)] p-3 rounded-2xl flex justify-between items-center mb-4">

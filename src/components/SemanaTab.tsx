@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { AppState, DayPlan, Recipe } from "../types";
 import { getRecipeById, generateWeekMenu } from "../utils/engine";
-import { Users, Clock, Trash2, X, Sparkles, AlertCircle, Info, Download } from "lucide-react";
+import { Users, Clock, Trash2, X, Sparkles, AlertCircle, Info, Download, ChevronLeft } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { AdSlot } from "./AdSlot";
@@ -157,6 +157,12 @@ export default function SemanaTab({
 
   return (
     <div className="pt-6 px-4 pb-24">
+      <button onClick={() => goToTab('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group hide-on-print">
+        <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
+          <ChevronLeft size={16} />
+        </div>
+        Voltar ao Início
+      </button>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-display text-[var(--color-ink)] font-bold">
           Semana

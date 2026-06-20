@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { AppState, DayPlan, Recipe } from "../types";
 import { COMMON_PANTRY_ITEMS } from "../data/pantry";
 import { getRecipeById, removeAccents, getAllIngredients } from "../utils/engine";
-import { Info, Sparkles, ChevronRight, Search, Plus, Trash2 } from "lucide-react";
+import { Info, Sparkles, ChevronRight, ChevronLeft, Search, Plus, Trash2 } from "lucide-react";
 import { recipes } from "../data/recipes";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { AnimatePresence } from "motion/react";
@@ -118,6 +118,12 @@ export default function DespensaTab({
 
   return (
     <div className="pt-6 px-4 pb-24">
+      <button onClick={() => goToTab?.('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+        <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
+          <ChevronLeft size={16} />
+        </div>
+        Voltar ao Início
+      </button>
       <div className="mb-6">
         <h1 className="text-3xl font-display text-[var(--color-ink)] font-bold mb-1">
           Despensa

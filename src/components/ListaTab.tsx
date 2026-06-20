@@ -19,6 +19,7 @@ import {
   Users,
   Download,
   Plus,
+  ChevronLeft,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import jsPDF from "jspdf";
@@ -39,7 +40,7 @@ interface Props {
   showToast: (msg: string) => void;
 }
 
-export default function ListaTab({ appState, updateState, showToast }: Props) {
+export default function ListaTab({ appState, updateState, showToast, goToTab }: Props & { goToTab?: (tab: any) => void }) {
   const [showMarkets, setShowMarkets] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [randomTip] = useState(
@@ -275,6 +276,12 @@ export default function ListaTab({ appState, updateState, showToast }: Props) {
 
   return (
     <div className="pt-6 px-4 pb-24">
+      <button onClick={() => goToTab?.('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+        <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
+          <ChevronLeft size={16} />
+        </div>
+        Voltar ao Início
+      </button>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="flex items-center text-3xl font-display text-[var(--color-ink)] font-bold mb-1">

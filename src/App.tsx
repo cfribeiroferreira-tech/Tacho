@@ -17,9 +17,33 @@ import { AnimatePresence, motion } from "motion/react";
 import { AdSlot } from "./components/AdSlot";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [activeTab, setActiveTabState] = useState<Tab>(() => {
+    const hash = window.location.hash.replace('#', '') as Tab;
+    return ["home", "receitas", "semana", "despensa", "lista"].includes(hash) ? hash : "home";
+  });
   const [state, updateState] = useStore();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const setActiveTab = (tab: Tab) => {
+    setActiveTabState(tab);
+    window.location.hash = tab;
+  };
+
+  React.useEffect(() => {
+    // Scroll to top whenever the tab changes
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeTab]);
+
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (["home", "receitas", "semana", "despensa", "lista"].includes(hash)) {
+        setActiveTabState(hash as Tab);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -63,6 +87,7 @@ export default function App() {
             appState={state}
             updateState={updateState}
             showToast={showToast}
+            goToTab={setActiveTab}
           />
         );
     }
