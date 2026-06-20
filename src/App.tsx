@@ -78,8 +78,8 @@ export default function App() {
         <div className="flex-1 w-full relative">
           {renderTab()}
         </div>
-        <div className="px-4 sticky bottom-0 z-30 pb-2 pt-2 bg-gradient-to-t from-[var(--color-paper)] to-transparent pointer-events-none flex justify-center">
-          <div className="pointer-events-auto w-[320px] max-w-full">
+        <div className="px-4 pb-2 pt-6 flex justify-center mt-auto">
+          <div className="w-[320px] max-w-full">
             <AdSlot type="banner" className="shadow-sm m-0" />
           </div>
         </div>
