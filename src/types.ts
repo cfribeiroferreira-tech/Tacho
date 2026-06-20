@@ -123,4 +123,4 @@ export interface AppState {
   };
 }
 
-export type Tab = "receitas" | "semana" | "despensa" | "lista";
+export type Tab = "home" | "receitas" | "semana" | "despensa" | "lista";
