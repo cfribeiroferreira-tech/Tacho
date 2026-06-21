@@ -5,12 +5,14 @@ import {
   Refrigerator,
   ShoppingCart,
   Heart,
+  Layers,
 } from "lucide-react";
 import { Tab } from "./types";
 import ReceitasTab from "./components/ReceitasTab";
 import SemanaTab from "./components/SemanaTab";
 import DespensaTab from "./components/DespensaTab";
 import ListaTab from "./components/ListaTab";
+import MenusTab from "./components/MenusTab";
 import LandingPage from "./components/LandingPage";
 import { useStore } from "./utils/useStore";
 import { AnimatePresence, motion } from "motion/react";
@@ -19,7 +21,7 @@ import { AdSlot } from "./components/AdSlot";
 export default function App() {
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
     const hash = window.location.hash.replace('#', '') as Tab;
-    return ["home", "receitas", "semana", "despensa", "lista"].includes(hash) ? hash : "home";
+    return ["home", "receitas", "semana", "despensa", "lista", "menus"].includes(hash) ? hash : "home";
   });
   const [state, updateState] = useStore();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function App() {
   React.useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (["home", "receitas", "semana", "despensa", "lista"].includes(hash)) {
+      if (["home", "receitas", "semana", "despensa", "lista", "menus"].includes(hash)) {
         setActiveTabState(hash as Tab);
       }
     };
@@ -54,6 +56,15 @@ export default function App() {
     switch (activeTab) {
       case "home":
         return <LandingPage goToTab={setActiveTab} />;
+      case "menus":
+        return (
+          <MenusTab
+            appState={state}
+            updateState={updateState}
+            showToast={showToast}
+            goToTab={setActiveTab}
+          />
+        );
       case "receitas":
         return (
           <ReceitasTab
@@ -96,6 +107,7 @@ export default function App() {
   const navItems = [
     { id: "receitas" as Tab, icon: Book, label: "Receitas" },
     { id: "semana" as Tab, icon: Calendar, label: "Semana" },
+    { id: "menus" as Tab, icon: Layers, label: "Coleções" },
     { id: "despensa" as Tab, icon: Refrigerator, label: "Despensa" },
     { id: "lista" as Tab, icon: ShoppingCart, label: "Lista" },
   ];
@@ -133,7 +145,12 @@ export default function App() {
               return (
                 <button
                   key={`${item.id}-${idx}`}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    if (item.id === 'lista' || item.id === 'semana') {
+                      updateState({ activeListView: undefined });
+                    }
+                    setActiveTab(item.id);
+                  }}
                   className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors rounded-xl mx-1 my-1 px-1 ${isActive ? "text-[var(--color-ink)] bg-black/5" : "text-[var(--color-ink-soft)]"}`}
                 >
                   <div className="relative">

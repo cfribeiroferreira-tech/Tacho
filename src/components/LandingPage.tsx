@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Book, Calendar, Refrigerator, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Book, Calendar, Refrigerator, ShoppingCart, ArrowRight, Layers } from 'lucide-react';
 import { Tab } from '../types';
 
 interface LandingPageProps {
@@ -104,6 +104,20 @@ export default function LandingPage({ goToTab }: LandingPageProps) {
             <div>
               <h3 className="font-semibold text-xl text-white mb-1">Menu Semanal</h3>
               <p className="text-sm text-gray-400 leading-snug">Organiza as tuas refeições</p>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            variants={itemVariants}
+            onClick={() => goToTab('menus')}
+            className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
+          >
+            <div className="shrink-0 w-14 h-14 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-500/30 transition-all">
+              <Layers className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-xl text-white mb-1">Coleções</h3>
+              <p className="text-sm text-gray-400 leading-snug">Ementas personalizadas</p>
             </div>
           </motion.div>
 

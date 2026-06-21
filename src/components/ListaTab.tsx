@@ -5,7 +5,11 @@ import {
   Supermarket,
   SUPERMARKET_LINKS,
 } from "../types";
-import { generateShoppingList, getAllIngredients, removeAccents } from "../utils/engine";
+import {
+  generateShoppingList,
+  getAllIngredients,
+  removeAccents,
+} from "../utils/engine";
 import type { AggregatedItem } from "../utils/engine";
 import { getEstimatedPrice, getLastScrapedAt } from "../utils/pricing";
 import {
@@ -20,6 +24,7 @@ import {
   Download,
   Plus,
   ChevronLeft,
+  ChevronDown,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import jsPDF from "jspdf";
@@ -40,7 +45,12 @@ interface Props {
   showToast: (msg: string) => void;
 }
 
-export default function ListaTab({ appState, updateState, showToast, goToTab }: Props & { goToTab?: (tab: any) => void }) {
+export default function ListaTab({
+  appState,
+  updateState,
+  showToast,
+  goToTab,
+}: Props & { goToTab?: (tab: any) => void }) {
   const [showMarkets, setShowMarkets] = useState(false);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [randomTip] = useState(
@@ -49,12 +59,44 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
 
   // Memoize so it doesn't recalculate unless plan/people/pantry changes
   const { grouped, excludedCount, excludedNames } = useMemo(() => {
-    return generateShoppingList(
-      appState.weekPlan,
-      appState.peopleCount,
-      appState.pantry,
-    );
-  }, [appState.weekPlan, appState.peopleCount, appState.pantry]);
+    let plan = appState.weekPlan;
+    if (
+      appState.activeListView?.type === "menu" &&
+      appState.activeListView.menuId
+    ) {
+      if (appState.activeListView.menuId === "favorites") {
+        plan = (appState.favorites || []).map((rId, i) => ({
+          day: "Segunda" as any,
+          pequeno_almoco: null,
+          lanche: null,
+          almoco: { id: `mock-fav-${i}`, recipeId: rId },
+          jantar: null,
+        }));
+      } else {
+        const menu = appState.customMenus?.find(
+          (m) => m.id === appState.activeListView?.menuId,
+        );
+        if (menu) {
+          // Mock a week plan to reuse generateShoppingList
+          plan = menu.recipeIds.map((rId, i) => ({
+            day: "Segunda" as any,
+            pequeno_almoco: null,
+            lanche: null,
+            almoco: { id: `mock-${i}`, recipeId: rId },
+            jantar: null,
+          }));
+        }
+      }
+    }
+
+    return generateShoppingList(plan, appState.peopleCount, appState.pantry);
+  }, [
+    appState.weekPlan,
+    appState.peopleCount,
+    appState.pantry,
+    appState.activeListView,
+    appState.customMenus,
+  ]);
 
   const toggleBought = (id: string) => {
     const current = appState.boughtItems;
@@ -86,7 +128,7 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
     if (!valueToAdd) return;
     const current = appState.customShoppingItems || [];
     if (!current.includes(valueToAdd)) {
-        updateState({ customShoppingItems: [...current, valueToAdd] });
+      updateState({ customShoppingItems: [...current, valueToAdd] });
     }
     setCustomItemInput("");
     setShowItemSuggestions(false);
@@ -94,17 +136,25 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
 
   const removeCustomItem = (itemToRemove: string) => {
     const current = appState.customShoppingItems || [];
-    updateState({ customShoppingItems: current.filter(i => i !== itemToRemove) });
+    updateState({
+      customShoppingItems: current.filter((i) => i !== itemToRemove),
+    });
     // Also remove from bought items if it was bought
     const currentBought = appState.boughtItems;
     if (currentBought.includes(`custom-${itemToRemove}`)) {
-      updateState({ boughtItems: currentBought.filter(i => i !== `custom-${itemToRemove}`) });
+      updateState({
+        boughtItems: currentBought.filter(
+          (i) => i !== `custom-${itemToRemove}`,
+        ),
+      });
     }
   };
 
-  const hasItems = (Object.values(grouped) as AggregatedItem[][]).some(
-    (arr) => arr.length > 0,
-  ) || (appState.customShoppingItems && appState.customShoppingItems.length > 0);
+  const hasItems =
+    (Object.values(grouped) as AggregatedItem[][]).some(
+      (arr) => arr.length > 0,
+    ) ||
+    (appState.customShoppingItems && appState.customShoppingItems.length > 0);
 
   const { totalContinente, totalAuchan, recommendedMarket } = useMemo(() => {
     let continente = 0;
@@ -217,7 +267,10 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
         ];
 
         if (item2) {
-          row.push(`[  ] ${item2.name}`, `${item2.totalQuantity} ${item2.unit}`);
+          row.push(
+            `[  ] ${item2.name}`,
+            `${item2.totalQuantity} ${item2.unit}`,
+          );
         } else {
           row.push("", "");
         }
@@ -241,7 +294,7 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 8;
-      
+
       // Page break if needed
       if (yPos > 270) {
         doc.addPage();
@@ -274,24 +327,40 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
       : "#";
   };
 
+  let activeMenu = null;
+  if (appState.activeListView?.type === "menu") {
+    if (appState.activeListView.menuId === "favorites") {
+      activeMenu = { id: "favorites", name: "Favoritos" };
+    } else {
+      activeMenu = appState.customMenus?.find(
+        (m) => m.id === appState.activeListView?.menuId,
+      );
+    }
+  }
+
   return (
     <div className="pt-6 px-4 pb-24">
-      <button onClick={() => goToTab?.('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+      <button
+        onClick={() => goToTab?.(activeMenu ? "menus" : "home")}
+        className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group"
+      >
         <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
           <ChevronLeft size={16} />
         </div>
-        Voltar ao Início
+        {activeMenu ? "Voltar às Coleções" : "Voltar ao Início"}
       </button>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 gap-2">
         <div>
-          <h1 className="flex items-center text-3xl font-display text-[var(--color-ink)] font-bold mb-1">
-            Lista
-            {appState.sharedRoomId && (
-              <span className="ml-3 inline-flex items-center text-[10px] bg-[var(--color-brand)]/10 text-[var(--color-brand)] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold h-6 align-middle">
-                <Users size={12} className="mr-1" /> Sincronizada
-              </span>
-            )}
-          </h1>
+          <div className="flex flex-col relative items-start gap-1">
+            <h1 className="flex flex-wrap items-center text-3xl font-display text-[var(--color-ink)] font-bold mb-1">
+              Lista
+              {appState.sharedRoomId && !activeMenu && (
+                <span className="ml-3 inline-flex items-center text-[10px] bg-[var(--color-brand)]/10 text-[var(--color-brand)] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold h-6 align-middle">
+                  <Users size={12} className="mr-1" /> Sincronizada
+                </span>
+              )}
+            </h1>
+          </div>
           <p className="text-[var(--color-ink-soft)] text-sm">
             {appState.children && appState.children.length > 0
               ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
@@ -337,12 +406,54 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
           </button>
           <button
             onClick={() => setShowMarkets(true)}
-            className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)]"
+            className="p-2.5 bg-white border border-[var(--color-line)] rounded-xl text-[var(--color-ink)] hidden sm:flex"
             title="Configurar Supermercados"
             aria-label="Configurar Supermercados"
           >
             <Settings size={20} />
           </button>
+        </div>
+      </div>
+
+      <div className="mb-6 rounded-2xl bg-orange-50 border border-orange-100 p-4">
+        <label className="block text-sm font-medium text-orange-900 mb-2">
+          Selecione a lista que pretende visualizar:
+        </label>
+        <div className="relative">
+          <select
+            value={
+              appState.activeListView?.type === "menu"
+                ? `menu:${appState.activeListView.menuId}`
+                : "plan"
+            }
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "plan") {
+                updateState({ activeListView: undefined });
+              } else if (val.startsWith("menu:")) {
+                updateState({
+                  activeListView: {
+                    type: "menu",
+                    menuId: val.split(":")[1],
+                  },
+                });
+              }
+            }}
+            className="w-full appearance-none bg-white border border-orange-200 rounded-xl pl-4 pr-10 py-3 text-[var(--color-ink)] focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 shadow-sm font-medium"
+          >
+            <option value="plan">Geral (Plano Semanal)</option>
+            <optgroup label="Coleções">
+              <option value="menu:favorites">Favoritos</option>
+              {(appState.customMenus || []).map((m) => (
+                <option key={m.id} value={`menu:${m.id}`}>
+                  {m.name}
+                </option>
+              ))}
+            </optgroup>
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-orange-500">
+            <ChevronDown size={20} />
+          </div>
         </div>
       </div>
 
@@ -358,174 +469,180 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
       )}
 
       <div className="space-y-8">
-          {/* Price Estimator */}
-          {(totalContinente > 0 || totalAuchan > 0) && (
-            <div className="bg-white border border-[var(--color-line)] rounded-2xl p-4 shadow-sm overflow-hidden mb-8">
-              <h4 className="font-bold text-[var(--color-ink)] mb-3 text-sm flex items-center">
-                <span className="bg-[#E6EEE8] text-[var(--color-brand)] p-1.5 rounded-lg mr-2">
-                  💰
-                </span>
-                Estimativa de Custo
-                <span className="ml-auto text-[10px] bg-[var(--color-brand)]/10 text-[var(--color-brand)] px-2 py-0.5 rounded font-bold">
-                  Automação a correr diariamente (12:00)
-                </span>
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div
-                  className={`p-3 border rounded-xl flex flex-col justify-center ${recommendedMarket === "Continente" ? "border-[var(--color-brand)] bg-[#FAFCFB]" : "border-[var(--color-line)] bg-white"}`}
-                >
-                  <div className="text-xs font-bold text-[var(--color-ink-soft)] mb-1">
-                    Continente
-                  </div>
-                  <div
-                    className={`font-display text-lg font-bold ${recommendedMarket === "Continente" ? "text-[var(--color-brand)]" : "text-[var(--color-ink)]"}`}
-                  >
-                    {totalContinente.toFixed(2)}€
-                  </div>
-                  {recommendedMarket === "Continente" && (
-                    <div className="text-[10px] text-[var(--color-brand)] font-bold mt-1.5 uppercase tracking-wide">
-                      🏆 Mais Barato
-                    </div>
-                  )}
+        {/* Price Estimator */}
+        {(totalContinente > 0 || totalAuchan > 0) && (
+          <div className="bg-white border border-[var(--color-line)] rounded-2xl p-4 shadow-sm overflow-hidden mb-8">
+            <h4 className="font-bold text-[var(--color-ink)] mb-3 text-sm flex items-center">
+              <span className="bg-[#E6EEE8] text-[var(--color-brand)] p-1.5 rounded-lg mr-2">
+                💰
+              </span>
+              Estimativa de Custo
+              <span className="ml-auto text-[10px] bg-[var(--color-brand)]/10 text-[var(--color-brand)] px-2 py-0.5 rounded font-bold">
+                Automação a correr diariamente (12:00)
+              </span>
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div
+                className={`p-3 border rounded-xl flex flex-col justify-center ${recommendedMarket === "Continente" ? "border-[var(--color-brand)] bg-[#FAFCFB]" : "border-[var(--color-line)] bg-white"}`}
+              >
+                <div className="text-xs font-bold text-[var(--color-ink-soft)] mb-1">
+                  Continente
                 </div>
                 <div
-                  className={`p-3 border rounded-xl flex flex-col justify-center ${recommendedMarket === "Auchan" ? "border-[var(--color-brand)] bg-[#FAFCFB]" : "border-[var(--color-line)] bg-white"}`}
+                  className={`font-display text-lg font-bold ${recommendedMarket === "Continente" ? "text-[var(--color-brand)]" : "text-[var(--color-ink)]"}`}
                 >
-                  <div className="text-xs font-bold text-[var(--color-ink-soft)] mb-1">
-                    Auchan
-                  </div>
-                  <div
-                    className={`font-display text-lg font-bold ${recommendedMarket === "Auchan" ? "text-[var(--color-brand)]" : "text-[var(--color-ink)]"}`}
-                  >
-                    {totalAuchan.toFixed(2)}€
-                  </div>
-                  {recommendedMarket === "Auchan" && (
-                    <div className="text-[10px] text-[var(--color-brand)] font-bold mt-1.5 uppercase tracking-wide">
-                      🏆 Mais Barato
-                    </div>
-                  )}
+                  {totalContinente.toFixed(2)}€
                 </div>
+                {recommendedMarket === "Continente" && (
+                  <div className="text-[10px] text-[var(--color-brand)] font-bold mt-1.5 uppercase tracking-wide">
+                    🏆 Mais Barato
+                  </div>
+                )}
               </div>
-              <p className="text-[10px] text-center text-[var(--color-ink-soft)] mt-3">
-                Valores baseados em marcas brancas e médias. O preço real pode
-                variar na loja.
-              </p>
-            </div>
-          )}
-
-          {AISLE_ORDER.flatMap((aisle, aisleIdx) => {
-            const items = grouped[aisle];
-            if (!items || items.length === 0) return [];
-
-            const aisleIcons: Record<string, string> = {
-              "Frutas e Legumes": "🥦",
-              Talho: "🥩",
-              Peixaria: "🐟",
-              "Laticínios e Ovos": "🥛",
-              "Alternativas Vegetais": "🌱",
-              Mercearia: "🥫",
-              Padaria: "🍞",
-              Bebidas: "🥤",
-            };
-
-            const allBought = items.every((item) =>
-              appState.boughtItems.includes(item.id),
-            );
-
-            return [
-              ...(aisleIdx === 2 ? [<AdSlot key={`ad-${aisleIdx}`} type="rectangle" className="mb-8" />] : []),
-              <div key={`${aisle}-${aisleIdx}`} className="scroll-mt-6">
-                <div className="flex items-center mb-3 px-1 sticky top-16 bg-[var(--color-paper)]/90 backdrop-blur-md z-10 py-2">
-                  <span className="text-2xl mr-2">
-                    {aisleIcons[aisle] || "🛒"}
-                  </span>
-                  <h3
-                    className={`font-bold text-xl transition-colors ${allBought ? "text-[var(--color-ink-soft)]" : "text-[var(--color-brand)]"}`}
-                  >
-                    {aisle}
-                  </h3>
-                  <span className="ml-auto text-xs font-bold bg-white border border-[var(--color-line)] px-2.5 py-1 rounded-full text-[var(--color-ink-soft)]">
-                    {
-                      items.filter((i) => appState.boughtItems.includes(i.id))
-                        .length
-                    }
-                    /{items.length}
-                  </span>
+              <div
+                className={`p-3 border rounded-xl flex flex-col justify-center ${recommendedMarket === "Auchan" ? "border-[var(--color-brand)] bg-[#FAFCFB]" : "border-[var(--color-line)] bg-white"}`}
+              >
+                <div className="text-xs font-bold text-[var(--color-ink-soft)] mb-1">
+                  Auchan
                 </div>
-                <div className="bg-white border border-[var(--color-line)] rounded-2xl overflow-hidden shadow-sm">
-                  {items.map((item, idx) => {
-                    const isBought = appState.boughtItems.includes(item.id);
-                    return (
-                      <div
-                        key={`${item.id}-${idx}`}
-                        className={`p-4 flex items-start gap-3 transition-colors ${idx !== items.length - 1 ? "border-b border-[var(--color-line)]" : ""} ${isBought ? "bg-[var(--color-paper)]/50" : ""}`}
+                <div
+                  className={`font-display text-lg font-bold ${recommendedMarket === "Auchan" ? "text-[var(--color-brand)]" : "text-[var(--color-ink)]"}`}
+                >
+                  {totalAuchan.toFixed(2)}€
+                </div>
+                {recommendedMarket === "Auchan" && (
+                  <div className="text-[10px] text-[var(--color-brand)] font-bold mt-1.5 uppercase tracking-wide">
+                    🏆 Mais Barato
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-[10px] text-center text-[var(--color-ink-soft)] mt-3">
+              Valores baseados em marcas brancas e médias. O preço real pode
+              variar na loja.
+            </p>
+          </div>
+        )}
+
+        {AISLE_ORDER.flatMap((aisle, aisleIdx) => {
+          const items = grouped[aisle];
+          if (!items || items.length === 0) return [];
+
+          const aisleIcons: Record<string, string> = {
+            "Frutas e Legumes": "🥦",
+            Talho: "🥩",
+            Peixaria: "🐟",
+            "Laticínios e Ovos": "🥛",
+            "Alternativas Vegetais": "🌱",
+            Mercearia: "🥫",
+            Padaria: "🍞",
+            Bebidas: "🥤",
+          };
+
+          const allBought = items.every((item) =>
+            appState.boughtItems.includes(item.id),
+          );
+
+          return [
+            ...(aisleIdx === 2
+              ? [
+                  <AdSlot
+                    key={`ad-${aisleIdx}`}
+                    type="rectangle"
+                    className="mb-8"
+                  />,
+                ]
+              : []),
+            <div key={`${aisle}-${aisleIdx}`} className="scroll-mt-6">
+              <div className="flex items-center mb-3 px-1 sticky top-16 bg-[var(--color-paper)]/90 backdrop-blur-md z-10 py-2">
+                <span className="text-2xl mr-2">
+                  {aisleIcons[aisle] || "🛒"}
+                </span>
+                <h3
+                  className={`font-bold text-xl transition-colors ${allBought ? "text-[var(--color-ink-soft)]" : "text-[var(--color-brand)]"}`}
+                >
+                  {aisle}
+                </h3>
+                <span className="ml-auto text-xs font-bold bg-white border border-[var(--color-line)] px-2.5 py-1 rounded-full text-[var(--color-ink-soft)]">
+                  {
+                    items.filter((i) => appState.boughtItems.includes(i.id))
+                      .length
+                  }
+                  /{items.length}
+                </span>
+              </div>
+              <div className="bg-white border border-[var(--color-line)] rounded-2xl overflow-hidden shadow-sm">
+                {items.map((item, idx) => {
+                  const isBought = appState.boughtItems.includes(item.id);
+                  return (
+                    <div
+                      key={`${item.id}-${idx}`}
+                      className={`p-4 flex items-start gap-3 transition-colors ${idx !== items.length - 1 ? "border-b border-[var(--color-line)]" : ""} ${isBought ? "bg-[var(--color-paper)]/50" : ""}`}
+                    >
+                      <button
+                        onClick={() => toggleBought(item.id)}
+                        className="mt-0.5 text-[var(--color-brand)] flex-shrink-0"
                       >
-                        <button
-                          onClick={() => toggleBought(item.id)}
-                          className="mt-0.5 text-[var(--color-brand)] flex-shrink-0"
+                        {isBought ? (
+                          <CheckCircle2 size={24} />
+                        ) : (
+                          <Circle
+                            size={24}
+                            className="text-[var(--color-line)]"
+                          />
+                        )}
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={`flex justify-between items-start ${isBought ? "opacity-50 line-through" : ""}`}
                         >
-                          {isBought ? (
-                            <CheckCircle2 size={24} />
-                          ) : (
-                            <Circle
-                              size={24}
-                              className="text-[var(--color-line)]"
-                            />
-                          )}
-                        </button>
+                          <span className="font-medium pr-2 text-sm leading-tight">
+                            {item.name}
+                          </span>
+                          <span className="font-bold whitespace-nowrap text-sm bg-[var(--color-sand)] px-2 py-0.5 rounded-md">
+                            {item.totalQuantity} {item.unit}
+                          </span>
+                        </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className={`flex justify-between items-start ${isBought ? "opacity-50 line-through" : ""}`}
-                          >
-                            <span className="font-medium pr-2 text-sm leading-tight">
-                              {item.name}
-                            </span>
-                            <span className="font-bold whitespace-nowrap text-sm bg-[var(--color-sand)] px-2 py-0.5 rounded-md">
-                              {item.totalQuantity} {item.unit}
-                            </span>
+                        {/* Aggregation Note */}
+                        {item.recipeNames.length > 1 && !isBought && (
+                          <div className="text-xs text-[var(--color-pumpkin)] mt-1.5 font-medium">
+                            ↳ Junta {item.recipeNames.length} receitas
                           </div>
+                        )}
 
-                          {/* Aggregation Note */}
-                          {item.recipeNames.length > 1 && !isBought && (
-                            <div className="text-xs text-[var(--color-pumpkin)] mt-1.5 font-medium">
-                              ↳ Junta {item.recipeNames.length} receitas
+                        {/* Supermarket Links */}
+                        {!isBought &&
+                          appState.selectedSupermarkets.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {appState.selectedSupermarkets
+                                .filter((market) => SUPERMARKET_LINKS[market])
+                                .map((market, marketIdx) => (
+                                  <a
+                                    key={`${market}-${marketIdx}`}
+                                    href={getMarketLink(market, item.name)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] uppercase font-bold tracking-wide text-[var(--color-ink-soft)] bg-[var(--color-paper)] px-2 py-1 rounded-md border border-[var(--color-line)] flex items-center hover:bg-[var(--color-sand)] transition-colors"
+                                  >
+                                    {market}{" "}
+                                    <ExternalLink size={10} className="ml-1" />
+                                  </a>
+                                ))}
                             </div>
                           )}
-
-                          {/* Supermarket Links */}
-                          {!isBought &&
-                            appState.selectedSupermarkets.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-3">
-                                {appState.selectedSupermarkets
-                                  .filter((market) => SUPERMARKET_LINKS[market])
-                                  .map((market, marketIdx) => (
-                                    <a
-                                      key={`${market}-${marketIdx}`}
-                                      href={getMarketLink(market, item.name)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[10px] uppercase font-bold tracking-wide text-[var(--color-ink-soft)] bg-[var(--color-paper)] px-2 py-1 rounded-md border border-[var(--color-line)] flex items-center hover:bg-[var(--color-sand)] transition-colors"
-                                    >
-                                      {market}{" "}
-                                      <ExternalLink
-                                        size={10}
-                                        className="ml-1"
-                                      />
-                                    </a>
-                                  ))}
-                              </div>
-                            )}
-                        </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            ];
-          })}
+            </div>,
+          ];
+        })}
 
-          {appState.customShoppingItems && appState.customShoppingItems.length > 0 && (
+        {appState.customShoppingItems &&
+          appState.customShoppingItems.length > 0 && (
             <div className="scroll-mt-6">
               <div className="flex items-center mb-3 px-1 sticky top-16 bg-[var(--color-paper)]/90 backdrop-blur-md z-10 py-2">
                 <span className="text-2xl mr-2">📌</span>
@@ -535,108 +652,139 @@ export default function ListaTab({ appState, updateState, showToast, goToTab }: 
               </div>
               <div className="bg-white border border-[var(--color-line)] rounded-2xl overflow-hidden shadow-sm shadow-[var(--color-line)]">
                 <div className="divide-y divide-[var(--color-line)]">
-                  {[...appState.customShoppingItems].sort((a,b) => a.localeCompare(b, "pt")).map((item, idxx) => {
-                    const isBought = appState.boughtItems.includes(`custom-${item}`);
-                    return (
-                      <div
-                        key={`custom-${item}-${idxx}`}
-                        onClick={() => toggleBought(`custom-${item}`)}
-                        className={`flex items-center justify-between p-4 cursor-pointer transition-colors hover:bg-gray-50/50 ${isBought ? "opacity-50 bg-gray-50/80" : ""}`}
-                      >
-                        <div className="flex flex-col">
-                          <span className={`font-semibold text-sm transition-all ${isBought ? "text-[var(--color-ink-soft)] line-through decoration-[var(--color-line)] decoration-2" : "text-[var(--color-ink)]"}`}>
-                            {item}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeCustomItem(item);
-                            }}
-                            className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
-                          </button>
-                          <div className={`transition-all ${isBought ? "text-[var(--color-brand)] scale-110" : "text-[var(--color-ink-soft)]/30 hover:text-[var(--color-brand)]/50"}`}>
-                            {isBought ? <CheckCircle2 size={24} className="fill-[var(--color-brand)]/10" /> : <Circle size={24} strokeWidth={2} />}
+                  {[...appState.customShoppingItems]
+                    .sort((a, b) => a.localeCompare(b, "pt"))
+                    .map((item, idxx) => {
+                      const isBought = appState.boughtItems.includes(
+                        `custom-${item}`,
+                      );
+                      return (
+                        <div
+                          key={`custom-${item}-${idxx}`}
+                          onClick={() => toggleBought(`custom-${item}`)}
+                          className={`flex items-center justify-between p-4 cursor-pointer transition-colors hover:bg-gray-50/50 ${isBought ? "opacity-50 bg-gray-50/80" : ""}`}
+                        >
+                          <div className="flex flex-col">
+                            <span
+                              className={`font-semibold text-sm transition-all ${isBought ? "text-[var(--color-ink-soft)] line-through decoration-[var(--color-line)] decoration-2" : "text-[var(--color-ink)]"}`}
+                            >
+                              {item}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeCustomItem(item);
+                              }}
+                              className="p-1 text-red-400 hover:text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                            </button>
+                            <div
+                              className={`transition-all ${isBought ? "text-[var(--color-brand)] scale-110" : "text-[var(--color-ink-soft)]/30 hover:text-[var(--color-brand)]/50"}`}
+                            >
+                              {isBought ? (
+                                <CheckCircle2
+                                  size={24}
+                                  className="fill-[var(--color-brand)]/10"
+                                />
+                              ) : (
+                                <Circle size={24} strokeWidth={2} />
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             </div>
           )}
 
-          <div className="bg-white border text-sm font-medium border-[var(--color-line)] rounded-2xl p-4 shadow-sm relative">
-            <form onSubmit={addCustomItem} className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="Adicionar ingrediente extra..."
-                value={customItemInput}
-                onChange={(e) => {
-                  setCustomItemInput(e.target.value);
-                  setShowItemSuggestions(true);
-                }}
-                onFocus={() => setShowItemSuggestions(true)}
-                className="flex-1 px-3 py-2 border border-[var(--color-line)] rounded-xl outline-none focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)] transition-all bg-transparent"
-              />
-              <button
-                type="submit"
-                disabled={!customItemInput.trim()}
-                className="px-4 py-2 bg-[var(--color-brand)] text-white rounded-xl font-bold disabled:opacity-50"
-              >
-                Adicionar
-              </button>
-            </form>
-            
-            {showItemSuggestions && customItemSuggestions.length > 0 && (
-              <div className="absolute z-10 left-4 right-4 mt-2 bg-white border border-[var(--color-line)] rounded-xl shadow-lg overflow-hidden">
-                {customItemSuggestions.map((item, idx) => (
-                  <button
-                    key={`suggest-${item}-${idx}`}
-                    type="button"
-                    onClick={(e) => addCustomItem(e, item)}
-                    className="w-full text-left px-4 py-3 hover:bg-[var(--color-sand)] active:bg-[var(--color-line)] border-b last:border-b-0 border-[var(--color-line)] transition-colors flex items-center space-x-3"
-                  >
-                    <Plus size={16} className="text-[var(--color-ink-soft)]" />
-                    <span className="font-medium text-[var(--color-ink)]">{item}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="bg-white border text-sm font-medium border-[var(--color-line)] rounded-2xl p-4 shadow-sm relative">
+          <form onSubmit={addCustomItem} className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Adicionar ingrediente extra..."
+              value={customItemInput}
+              onChange={(e) => {
+                setCustomItemInput(e.target.value);
+                setShowItemSuggestions(true);
+              }}
+              onFocus={() => setShowItemSuggestions(true)}
+              className="flex-1 px-3 py-2 border border-[var(--color-line)] rounded-xl outline-none focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)] transition-all bg-transparent"
+            />
+            <button
+              type="submit"
+              disabled={!customItemInput.trim()}
+              className="px-4 py-2 bg-[var(--color-brand)] text-white rounded-xl font-bold disabled:opacity-50"
+            >
+              Adicionar
+            </button>
+          </form>
 
-          {excludedCount > 0 && (
-            <div className="bg-[var(--color-sand)] rounded-2xl p-4 text-sm text-[var(--color-ink-soft)] font-medium">
-              <span className="font-bold text-[var(--color-mustard)]">
-                {excludedCount} itens
-              </span>{" "}
-              excluídos por estarem na despensa:
-              <span className="block mt-1 font-normal opacity-75">
-                {excludedNames.join(", ")}
-              </span>
+          {showItemSuggestions && customItemSuggestions.length > 0 && (
+            <div className="absolute z-10 left-4 right-4 mt-2 bg-white border border-[var(--color-line)] rounded-xl shadow-lg overflow-hidden">
+              {customItemSuggestions.map((item, idx) => (
+                <button
+                  key={`suggest-${item}-${idx}`}
+                  type="button"
+                  onClick={(e) => addCustomItem(e, item)}
+                  className="w-full text-left px-4 py-3 hover:bg-[var(--color-sand)] active:bg-[var(--color-line)] border-b last:border-b-0 border-[var(--color-line)] transition-colors flex items-center space-x-3"
+                >
+                  <Plus size={16} className="text-[var(--color-ink-soft)]" />
+                  <span className="font-medium text-[var(--color-ink)]">
+                    {item}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
-
-          <div className="bg-white border border-[var(--color-line)] rounded-2xl p-4 mt-6 mb-2 flex gap-3 shadow-sm">
-            <div className="text-[var(--color-mustard)] mt-0.5">
-              <Lightbulb size={20} />
-            </div>
-            <div>
-              <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-ink-soft)] mb-1">
-                Dica de Poupança
-              </h4>
-              <p className="text-sm font-medium text-[var(--color-ink)] leading-snug">
-                {randomTip}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 mb-4 text-center"></div>
         </div>
+
+        {excludedCount > 0 && (
+          <div className="bg-[var(--color-sand)] rounded-2xl p-4 text-sm text-[var(--color-ink-soft)] font-medium">
+            <span className="font-bold text-[var(--color-mustard)]">
+              {excludedCount} itens
+            </span>{" "}
+            excluídos por estarem na despensa:
+            <span className="block mt-1 font-normal opacity-75">
+              {excludedNames.join(", ")}
+            </span>
+          </div>
+        )}
+
+        <div className="bg-white border border-[var(--color-line)] rounded-2xl p-4 mt-6 mb-2 flex gap-3 shadow-sm">
+          <div className="text-[var(--color-mustard)] mt-0.5">
+            <Lightbulb size={20} />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-ink-soft)] mb-1">
+              Dica de Poupança
+            </h4>
+            <p className="text-sm font-medium text-[var(--color-ink)] leading-snug">
+              {randomTip}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 mb-4 text-center"></div>
+      </div>
 
       {/* Room Modal */}
       <AnimatePresence>

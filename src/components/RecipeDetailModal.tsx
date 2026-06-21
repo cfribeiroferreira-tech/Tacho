@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Clock, Info, Plus } from "lucide-react";
+import { X, Clock, Info, Plus, Heart } from "lucide-react";
 import { Recipe } from "../types";
 import { getCalorieBadgeLevel } from "../utils/engine";
 import { recipes } from "../data/recipes";
@@ -14,8 +14,23 @@ export function RecipeDetailModal({
   goToTab,
 }: any) {
   const [showPicker, setShowPicker] = useState(false);
+  const [showCollectionPicker, setShowCollectionPicker] = useState(false);
   const [showKcalInfo, setShowKcalInfo] = useState(false);
   const badge = getCalorieBadgeLevel(recipe.kcalPerServing);
+  
+  const isFavorite = appState.favorites?.includes(recipe.id) || false;
+
+  const toggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const favs = appState.favorites || [];
+    if (isFavorite) {
+      updateState({ favorites: favs.filter((f) => f !== recipe.id) });
+      showToast("Removido dos favoritos");
+    } else {
+      updateState({ favorites: [...favs, recipe.id] });
+      showToast("Adicionado aos favoritos!");
+    }
+  };
 
   return (
     <>
@@ -33,17 +48,25 @@ export function RecipeDetailModal({
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className="fixed bottom-0 left-0 right-0 bg-[var(--color-paper)] rounded-t-3xl z-50 max-h-[85vh] overflow-y-auto w-full max-w-lg mx-auto"
       >
-        <div className="sticky top-0 bg-[var(--color-paper)]/90 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-[var(--color-line)]">
-          <div className="font-display font-bold text-xl flex items-center">
+        <div className="sticky top-0 bg-[var(--color-paper)]/90 backdrop-blur-md px-6 py-4 flex justify-between items-center border-b border-[var(--color-line)] z-10">
+          <div className="font-display font-bold text-xl flex items-center pr-2">
             <span className="text-2xl mr-2">{recipe.emoji}</span>
             {recipe.name}
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 bg-white rounded-full border border-[var(--color-line)]"
-          >
-            <X size={20} className="text-[var(--color-ink)]" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleFavorite}
+              className="p-2 bg-white rounded-full border border-[var(--color-line)] shrink-0"
+            >
+              <Heart size={20} className={isFavorite ? "fill-orange-500 text-orange-500" : "text-[var(--color-ink)]"} />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 bg-white rounded-full border border-[var(--color-line)] shrink-0"
+            >
+              <X size={20} className="text-[var(--color-ink)]" />
+            </button>
+          </div>
         </div>
 
         <div className="px-6 py-6 pb-24">
@@ -100,13 +123,18 @@ export function RecipeDetailModal({
           </p>
         </div>
 
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[var(--color-line)] w-full max-w-lg mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-[var(--color-line)] w-full max-w-lg mx-auto flex gap-3">
           <button
             onClick={() => setShowPicker(true)}
-            className="w-full bg-[var(--color-brand)] text-white py-3.5 rounded-2xl font-bold flex items-center justify-center space-x-2"
+            className="flex-1 bg-[var(--color-brand)] text-white py-3.5 rounded-2xl font-bold flex flex-col items-center justify-center text-sm shadow-sm active:scale-95 transition-transform"
           >
-            <Plus size={20} />
-            <span>Adicionar ao plano</span>
+            <span className="flex items-center gap-1"><Plus size={16} /> Plano Semanal</span>
+          </button>
+          <button
+            onClick={() => setShowCollectionPicker(true)}
+            className="flex-1 bg-[var(--color-paper)] border-2 border-[var(--color-line)] text-[var(--color-ink)] py-3.5 rounded-2xl font-bold flex flex-col items-center justify-center text-sm active:scale-95 transition-transform hover:border-[var(--color-brand)] hover:text-[var(--color-brand)]"
+          >
+            <span className="flex items-center gap-1"><Plus size={16} /> Coleção</span>
           </button>
         </div>
       </motion.div>
@@ -124,6 +152,28 @@ export function RecipeDetailModal({
               onClose();
               showToast(`${recipe.name} adicionado!`);
               goToTab("semana");
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Collection Picker Modal */}
+      <AnimatePresence>
+        {showCollectionPicker && (
+          <CollectionPicker
+            recipe={recipe}
+            appState={appState}
+            updateState={updateState}
+            onClose={() => setShowCollectionPicker(false)}
+            onComplete={(isAlreadyAdded: boolean) => {
+              setShowCollectionPicker(false);
+              onClose();
+              if (isAlreadyAdded) {
+                showToast("A receita já consta desta coleção.");
+              } else {
+                showToast(`${recipe.name} adicionado à coleção!`);
+                goToTab("menus");
+              }
             }}
           />
         )}
@@ -217,6 +267,107 @@ function DayMealPicker({
               </div>
             </div>
           ))}
+        </div>
+      </motion.div>
+    </>
+  );
+}
+
+function CollectionPicker({
+  recipe,
+  appState,
+  updateState,
+  onClose,
+  onComplete,
+}: any) {
+  const menus = appState.customMenus || [];
+
+  const handleSelect = (menuId: string) => {
+    let isAlreadyAdded = false;
+
+    if (menuId === "favorites") {
+      const favs = appState.favorites || [];
+      if (!favs.includes(recipe.id)) {
+        updateState({ favorites: [...favs, recipe.id] });
+      } else {
+        isAlreadyAdded = true;
+      }
+      onComplete(isAlreadyAdded);
+      return;
+    }
+
+    let targetMenu = menus.find((m: any) => m.id === menuId);
+    let newMenus = [...menus];
+
+    if (!targetMenu) {
+      targetMenu = {
+        id: Math.random().toString(36).substring(7),
+        name: "Nova Coleção",
+        recipeIds: [recipe.id],
+      };
+      newMenus.push(targetMenu);
+    } else {
+      if (!targetMenu.recipeIds.includes(recipe.id)) {
+        newMenus = newMenus.map(m => m.id === menuId ? { ...m, recipeIds: [...m.recipeIds, recipe.id] } : m);
+      } else {
+        isAlreadyAdded = true;
+      }
+    }
+
+    updateState({ customMenus: newMenus });
+    onComplete(isAlreadyAdded);
+  };
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.5 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black z-[60]"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[70] p-6 pb-safe w-full max-w-lg mx-auto"
+      >
+        <h3 className="font-display font-bold text-xl mb-4">Adicionar à Coleção</h3>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+          <button
+            onClick={() => handleSelect("favorites")}
+            className="w-full text-left p-3 rounded-xl border border-[var(--color-line)] hover:border-[var(--color-brand)] transition-colors flex justify-between items-center bg-orange-50"
+          >
+            <div className="flex items-center">
+              <span className="font-medium text-[var(--color-ink)]">Favoritos</span>
+            </div>
+            <Heart size={16} className="text-orange-500 fill-orange-500" />
+          </button>
+          
+          {menus.map((menu: any) => {
+            return (
+              <button
+                key={menu.id}
+                onClick={() => handleSelect(menu.id)}
+                className={`w-full text-left p-3 rounded-xl border border-[var(--color-line)] hover:border-[var(--color-brand)] transition-colors flex justify-between items-center`}
+              >
+                <div className="flex items-center">
+                  <span className="font-medium text-[var(--color-ink)]">{menu.name}</span>
+                </div>
+                <span className="text-sm text-[var(--color-ink-soft)]">{menu.recipeIds.length} receitas</span>
+              </button>
+            );
+          })}
+          
+          <button
+            onClick={() => handleSelect("new")}
+            className="w-full text-left p-3 rounded-xl border-2 border-dashed border-[var(--color-line)] hover:border-[var(--color-ink)] text-[var(--color-ink-soft)] hover:text-[var(--color-ink)] transition-colors flex items-center justify-center font-medium mt-4"
+          >
+            <Plus size={18} className="mr-2" />
+            Criar Nova Coleção
+          </button>
         </div>
       </motion.div>
     </>

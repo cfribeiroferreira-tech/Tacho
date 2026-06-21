@@ -22,7 +22,9 @@ export type Category =
   | "Económico"
   | "Especial"
   | "Snack"
-  | "Fim de Semana";
+  | "Fim de Semana"
+  | "Kids"
+  | "Favoritos";
 
 export type Supermarket = "Continente" | "Auchan";
 
@@ -121,6 +123,18 @@ export interface AppState {
     focus: string;
     mealTypes: ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[];
   };
+  favorites?: string[]; // IDs das receitas
+  customMenus?: CustomMenu[];
+  activeListView?: {
+    type: 'week' | 'menu';
+    menuId?: string;
+  };
 }
 
-export type Tab = "home" | "receitas" | "semana" | "despensa" | "lista";
+export interface CustomMenu {
+  id: string;
+  name: string;
+  recipeIds: string[];
+}
+
+export type Tab = "home" | "receitas" | "semana" | "despensa" | "lista" | "menus";

@@ -9,6 +9,8 @@ import { AdSlot } from "./AdSlot";
 
 const CATEGORIES: Category[] = [
   "Todas",
+  "Favoritos",
+  "Kids",
   "Familiar",
   "Leve",
   "Vegetariano",
@@ -23,6 +25,7 @@ const CATEGORIES: Category[] = [
   "Lanche",
   "Praia",
 ];
+
 
 interface Props {
   appState: AppState;
@@ -59,9 +62,14 @@ export default function ReceitasTab({
 
   const filtered = recipes.filter((r) => {
     const matchesSearch = removeAccents(r.name).includes(removeAccents(search));
-    const matchesCat =
-      activeCats.includes("Todas") ||
-      activeCats.every((cat) => r.tags.includes(cat));
+    const isFavorito = appState.favorites?.includes(r.id);
+    
+    // activeCats.includes("Todas") is handled if activeCats=[Todas], true for all
+    const matchesCat = activeCats.includes("Todas") || activeCats.every((cat) => {
+      if (cat === "Favoritos") return isFavorito;
+      return r.tags.includes(cat);
+    });
+
     return matchesSearch && matchesCat;
   });
 

@@ -23,7 +23,16 @@ const allRecipes: Recipe[] = [
   ...recipesP10,
 ];
 
+const KIDS_TAG_KEYWORDS = ["massa", "hambúrguer", "frango", "esparguete", "pizza", "puré", "macarrão", "salsicha", "crepe", "panqueca", "bifes", "almondegas"];
+
 allRecipes.forEach((r) => {
+  const nameLower = r.name.toLowerCase();
+  if (KIDS_TAG_KEYWORDS.some(k => nameLower.includes(k))) {
+    if (!r.tags.includes("Kids")) {
+      r.tags.push("Kids");
+    }
+  }
+
   if (!r.instructions || r.instructions.length === 0) {
     const names = r.ingredients.map((i) => i.name.toLowerCase());
     const mainVars = names.slice(0, Math.min(3, names.length)).join(", ");
