@@ -415,8 +415,8 @@ export default function ListaTab({
         </div>
       </div>
 
-      <div className="mb-6 rounded-2xl bg-orange-50 border border-orange-100 p-4">
-        <label className="block text-sm font-medium text-orange-900 mb-2">
+      <div className="mb-6 rounded-2xl bg-[var(--color-brand-soft)] border border-[var(--color-brand)]/20 p-4">
+        <label className="block text-sm font-medium text-[var(--color-brand)] mb-2">
           Selecione a lista que pretende visualizar:
         </label>
         <div className="relative">
@@ -439,7 +439,7 @@ export default function ListaTab({
                 });
               }
             }}
-            className="w-full appearance-none bg-white border border-orange-200 rounded-xl pl-4 pr-10 py-3 text-[var(--color-ink)] focus:outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 shadow-sm font-medium"
+            className="w-full appearance-none bg-white border border-[var(--color-brand)]/30 rounded-xl pl-4 pr-10 py-3 text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-brand)] focus:ring-1 focus:ring-[var(--color-brand)] shadow-sm font-medium"
           >
             <option value="plan">Geral (Plano Semanal)</option>
             <optgroup label="Coleções">
@@ -451,7 +451,7 @@ export default function ListaTab({
               ))}
             </optgroup>
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-orange-500">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-brand)]">
             <ChevronDown size={20} />
           </div>
         </div>

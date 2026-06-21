@@ -20,8 +20,17 @@ import { AdSlot } from "./components/AdSlot";
 
 export default function App() {
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
-    const hash = window.location.hash.replace('#', '') as Tab;
-    return ["home", "receitas", "semana", "despensa", "lista", "menus"].includes(hash) ? hash : "home";
+    const hash = window.location.hash.replace("#", "") as Tab;
+    return [
+      "home",
+      "receitas",
+      "semana",
+      "despensa",
+      "lista",
+      "menus",
+    ].includes(hash)
+      ? hash
+      : "home";
   });
   const [state, updateState] = useStore();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -33,18 +42,22 @@ export default function App() {
 
   React.useEffect(() => {
     // Scroll to top whenever the tab changes
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [activeTab]);
 
   React.useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (["home", "receitas", "semana", "despensa", "lista", "menus"].includes(hash)) {
+      const hash = window.location.hash.replace("#", "");
+      if (
+        ["home", "receitas", "semana", "despensa", "lista", "menus"].includes(
+          hash,
+        )
+      ) {
         setActiveTabState(hash as Tab);
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   const showToast = (msg: string) => {
@@ -55,7 +68,14 @@ export default function App() {
   const renderTab = () => {
     switch (activeTab) {
       case "home":
-        return <LandingPage goToTab={setActiveTab} appState={state} updateState={updateState} showToast={showToast} />;
+        return (
+          <LandingPage
+            goToTab={setActiveTab}
+            appState={state}
+            updateState={updateState}
+            showToast={showToast}
+          />
+        );
       case "menus":
         return (
           <MenusTab
@@ -113,12 +133,12 @@ export default function App() {
   ];
 
   return (
-    <div className={`flex flex-col min-h-[100dvh] max-w-lg mx-auto relative ${activeTab === 'home' ? '' : 'bg-[var(--color-paper)] pb-16'}`}>
-      <main className={`flex-1 w-full flex flex-col ${activeTab === 'home' ? '' : 'bg-[var(--color-paper)]'}`}>
-        <div className="flex-1 w-full relative">
-          {renderTab()}
-        </div>
-        {activeTab !== 'home' && (
+    <div
+      className={`flex flex-col min-h-[100dvh] max-w-lg mx-auto relative bg-[var(--color-paper)] ${activeTab === "home" ? "" : "pb-16"}`}
+    >
+      <main className="flex-1 w-full flex flex-col">
+        <div className="flex-1 w-full relative">{renderTab()}</div>
+        {activeTab !== "home" && (
           <div className="px-4 pb-2 pt-6 flex justify-center mt-auto">
             <div className="w-[320px] max-w-full">
               <AdSlot type="banner" className="shadow-sm m-0" />
@@ -127,7 +147,7 @@ export default function App() {
         )}
       </main>
 
-      {activeTab !== 'home' && (
+      {activeTab !== "home" && (
         <nav className="fixed bottom-0 w-full max-w-lg mx-auto bg-white border-t border-[var(--color-line)] pb-safe z-40">
           <div className="flex justify-around items-center h-16">
             {navItems.map((item, idx) => {
@@ -135,7 +155,8 @@ export default function App() {
               let badgeCount = 0;
               if (item.id === "semana") {
                 badgeCount = state.weekPlan.reduce(
-                  (acc, max) => acc + (max.almoco ? 1 : 0) + (max.jantar ? 1 : 0),
+                  (acc, max) =>
+                    acc + (max.almoco ? 1 : 0) + (max.jantar ? 1 : 0),
                   0,
                 );
               } else if (item.id === "despensa") {
@@ -146,7 +167,7 @@ export default function App() {
                 <button
                   key={`${item.id}-${idx}`}
                   onClick={() => {
-                    if (item.id === 'lista' || item.id === 'semana') {
+                    if (item.id === "lista" || item.id === "semana") {
                       updateState({ activeListView: undefined });
                     }
                     setActiveTab(item.id);
@@ -171,7 +192,9 @@ export default function App() {
 
       {/* Toast */}
       {toastMsg && (
-        <div className={`fixed ${activeTab === 'home' ? 'bottom-8' : 'bottom-24'} left-0 right-0 z-50 flex justify-center px-4 pointer-events-none`}>
+        <div
+          className={`fixed ${activeTab === "home" ? "bottom-8" : "bottom-24"} left-0 right-0 z-50 flex justify-center px-4 pointer-events-none`}
+        >
           <div className="bg-[var(--color-ink)] text-white font-medium shadow-lg px-6 py-3 rounded-full text-sm pointer-events-auto transition-all animate-in fade-in slide-in-from-bottom-4">
             {toastMsg}
           </div>
