@@ -247,6 +247,7 @@ export function generateWeekMenu(
       pool = pool.filter(
         (r) =>
           r.tags.includes("Familiar") ||
+          r.tags.includes("Kids") ||
           r.tags.includes("Conforto") ||
           r.tags.includes("Rápido"),
       );

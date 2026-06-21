@@ -36,7 +36,7 @@ const CATEGORIES: Category[] = [
 
 interface Props {
   appState: AppState;
-  updateState: (updates: Partial<AppState>) => void;
+  updateState: (updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => void;
   showToast: (msg: string) => void;
   goToTab: (tab: any) => void;
 }

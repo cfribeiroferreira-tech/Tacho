@@ -727,18 +727,19 @@ function GeneratorModal({ onClose, onGenerateLocal, initialConfig }: any) {
   const [focus, setFocus] = useState<string>(initialConfig?.focus || "Geral");
   const options = [
     "Geral",
+    "Kids",
     "Familiar",
     "Leve",
     "Vegetariano",
     "Vegan",
     "Peixe",
     "Carne",
-    "Económico",
     "Rápido",
     "Sopa",
     "Conforto",
     "Fit",
     "Praia",
+    "Económico",
   ];
 
   return (

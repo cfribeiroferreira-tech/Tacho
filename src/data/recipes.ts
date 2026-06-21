@@ -23,7 +23,7 @@ const allRecipes: Recipe[] = [
   ...recipesP10,
 ];
 
-const KIDS_TAG_KEYWORDS = ["massa", "hambúrguer", "frango", "esparguete", "pizza", "puré", "macarrão", "salsicha", "crepe", "panqueca", "bifes", "almondegas"];
+const KIDS_TAG_KEYWORDS = ["massa", "hambúrguer", "frango", "esparguete", "pizza", "puré", "macarrão", "salsicha", "crepe", "panqueca", "bifes", "almondegas", "lasanha", "empadão", "strogonoff", "douradinhos", "bacalhau à brás", "arroz de pato", "milanesa", "croquetes", "rissóis"];
 
 allRecipes.forEach((r) => {
   const nameLower = r.name.toLowerCase();
