@@ -1,18 +1,31 @@
 import React, { useState } from "react";
 import { AppState, CustomMenu } from "../types";
-import { ChevronLeft, Plus, Trash2, ShoppingCart, ShoppingBag } from "lucide-react";
+import {
+  ChevronLeft,
+  Plus,
+  Trash2,
+  ShoppingCart,
+  ShoppingBag,
+} from "lucide-react";
 import { recipes } from "../data/recipes";
 import { AnimatePresence, motion } from "motion/react";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 
 interface Props {
   appState: AppState;
-  updateState: (updates: Partial<AppState>) => void;
+  updateState: (
+    updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>),
+  ) => void;
   showToast: (msg: string) => void;
   goToTab: (tab: any) => void;
 }
 
-export default function MenusTab({ appState, updateState, showToast, goToTab }: Props) {
+export default function MenusTab({
+  appState,
+  updateState,
+  showToast,
+  goToTab,
+}: Props) {
   const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
   const menus = appState.customMenus || [];
 
@@ -23,7 +36,9 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
   };
 
   const allMenus = [favoritesMenu, ...menus];
-  const selectedMenu = selectedMenuId ? allMenus.find(m => m.id === selectedMenuId) : null;
+  const selectedMenu = selectedMenuId
+    ? allMenus.find((m) => m.id === selectedMenuId)
+    : null;
 
   const handleCreateMenu = () => {
     const newMenu: CustomMenu = {
@@ -37,7 +52,7 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
 
   const handleDeleteMenu = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    updateState({ customMenus: menus.filter(m => m.id !== id) });
+    updateState({ customMenus: menus.filter((m) => m.id !== id) });
     if (selectedMenuId === id) {
       setSelectedMenuId(null);
     }
@@ -46,7 +61,10 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
 
   return (
     <div className="pt-6 px-4 pb-24">
-      <button onClick={() => goToTab('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+      <button
+        onClick={() => goToTab("home")}
+        className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group"
+      >
         <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
           <ChevronLeft size={16} />
         </div>
@@ -58,7 +76,7 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
       </h1>
 
       {selectedMenuId && selectedMenu ? (
-        <MenuEditor 
+        <MenuEditor
           menu={selectedMenu}
           appState={appState}
           updateState={updateState}
@@ -69,7 +87,8 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
       ) : (
         <>
           <p className="text-[var(--color-ink-soft)] text-sm mb-6">
-            Cria menus personalizados para festas, jantares de amigos ou eventos e gera uma lista de compras para cada um.
+            Cria menus personalizados para festas, jantares de amigos ou eventos
+            e gera uma lista de compras para cada um.
           </p>
 
           <button
@@ -82,7 +101,7 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
 
           <div className="space-y-3">
             {allMenus.map((menu) => (
-              <div 
+              <div
                 key={menu.id}
                 onClick={() => setSelectedMenuId(menu.id)}
                 className="bg-white p-4 rounded-2xl shadow-sm border border-[var(--color-line)] cursor-pointer hover:border-[var(--color-brand)] transition-colors"
@@ -90,7 +109,10 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-bold text-lg">{menu.name}</h3>
                   {menu.id !== "favorites" && (
-                    <button onClick={(e) => handleDeleteMenu(menu.id, e)} className="text-red-400 p-1 hover:bg-red-50 rounded">
+                    <button
+                      onClick={(e) => handleDeleteMenu(menu.id, e)}
+                      className="text-red-400 p-1 hover:bg-red-50 rounded"
+                    >
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -101,8 +123,10 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    updateState({ activeListView: { type: 'menu', menuId: menu.id } });
-                    goToTab('lista');
+                    updateState({
+                      activeListView: { type: "menu", menuId: menu.id },
+                    });
+                    goToTab("lista");
                   }}
                   disabled={menu.recipeIds.length === 0}
                   className="flex items-center text-sm font-medium text-[var(--color-brand)] disabled:opacity-50"
@@ -112,10 +136,13 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
                 </button>
               </div>
             ))}
-            
+
             {allMenus.length === 0 && (
               <div className="text-center p-8 bg-[var(--color-sand)] rounded-2xl">
-                <ShoppingBag size={32} className="mx-auto mb-3 text-[var(--color-ink-soft)]" />
+                <ShoppingBag
+                  size={32}
+                  className="mx-auto mb-3 text-[var(--color-ink-soft)]"
+                />
                 <p className="text-sm font-medium text-[var(--color-ink-soft)]">
                   Sem coleções.
                 </p>
@@ -128,38 +155,58 @@ export default function MenusTab({ appState, updateState, showToast, goToTab }: 
   );
 }
 
-function MenuEditor({ menu, appState, updateState, onClose, goToTab, showToast }: any) {
+function MenuEditor({
+  menu,
+  appState,
+  updateState,
+  onClose,
+  goToTab,
+  showToast,
+}: any) {
   const [showRecipeModal, setShowRecipeModal] = useState<any>(null);
 
   const updateMenuName = (name: string) => {
     if (menu.id === "favorites") return;
-    const updatedMenus = (appState.customMenus || []).map((m: CustomMenu) => 
-      m.id === menu.id ? { ...m, name } : m
-    );
-    updateState({ customMenus: updatedMenus });
+    updateState((prev: AppState) => {
+      const updatedMenus = (prev.customMenus || []).map((m: CustomMenu) =>
+        m.id === menu.id ? { ...m, name } : m,
+      );
+      return { customMenus: updatedMenus };
+    });
   };
 
   const removeRecipe = (recipeId: string) => {
     if (menu.id === "favorites") {
-      updateState({ favorites: (appState.favorites || []).filter((id) => id !== recipeId) });
+      updateState((prev: AppState) => ({
+        favorites: (prev.favorites || []).filter((id) => id !== recipeId),
+      }));
       return;
     }
-    const updatedMenus = (appState.customMenus || []).map((m: CustomMenu) => 
-      m.id === menu.id ? { ...m, recipeIds: m.recipeIds.filter(id => id !== recipeId) } : m
-    );
-    updateState({ customMenus: updatedMenus });
+    updateState((prev: AppState) => {
+      const updatedMenus = (prev.customMenus || []).map((m: CustomMenu) =>
+        m.id === menu.id
+          ? { ...m, recipeIds: m.recipeIds.filter((id) => id !== recipeId) }
+          : m,
+      );
+      return { customMenus: updatedMenus };
+    });
   };
 
-  const menuRecipes = menu.recipeIds.map((id: string) => recipes.find(r => r.id === id)).filter(Boolean);
+  const menuRecipes = menu.recipeIds
+    .map((id: string) => recipes.find((r) => r.id === id))
+    .filter(Boolean);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <button onClick={onClose} className="p-2 border border-[var(--color-line)] bg-white shadow-sm rounded-full active:scale-95">
+        <button
+          onClick={onClose}
+          className="p-2 border border-[var(--color-line)] bg-white shadow-sm rounded-full active:scale-95"
+        >
           <ChevronLeft size={20} />
         </button>
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={menu.name}
           readOnly={menu.id === "favorites"}
           onChange={(e) => updateMenuName(e.target.value)}
@@ -172,11 +219,16 @@ function MenuEditor({ menu, appState, updateState, onClose, goToTab, showToast }
       <div className="bg-white rounded-2xl border border-[var(--color-line)] p-4 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold">Receitas na Coleção</h3>
-          <button 
+          <button
             onClick={() => {
               // Add a generic flag to know we want to pick a recipe for THIS menu
-              updateState({ pendingRecipeSelection: { day: 'Segunda', meal: menu.id as any } });
-              goToTab('receitas');
+              updateState({
+                pendingRecipeSelection: {
+                  day: "Segunda",
+                  meal: menu.id as any,
+                },
+              });
+              goToTab("receitas");
             }}
             className="flex items-center text-sm bg-[var(--color-brand)] text-white px-3 py-1.5 rounded-lg font-medium active:scale-95"
           >
@@ -185,19 +237,30 @@ function MenuEditor({ menu, appState, updateState, onClose, goToTab, showToast }
         </div>
 
         {menuRecipes.length === 0 ? (
-          <p className="text-sm text-[var(--color-ink-soft)] text-center py-4">Nenhuma receita. Adiciona receitas para gerar a lista.</p>
+          <p className="text-sm text-[var(--color-ink-soft)] text-center py-4">
+            Nenhuma receita. Adiciona receitas para gerar a lista.
+          </p>
         ) : (
           <div className="space-y-2">
             {menuRecipes.map((r: any) => (
-              <div key={r.id} onClick={() => setShowRecipeModal(r)} className="flex items-center justify-between p-3 border border-[var(--color-line)] rounded-xl cursor-pointer hover:bg-slate-50">
+              <div
+                key={r.id}
+                onClick={() => setShowRecipeModal(r)}
+                className="flex items-center justify-between p-3 border border-[var(--color-line)] rounded-xl cursor-pointer hover:bg-slate-50"
+              >
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">{r.emoji}</span>
-                  <span className="font-medium text-sm text-[var(--color-ink)]">{r.name}</span>
+                  <span className="font-medium text-sm text-[var(--color-ink)]">
+                    {r.name}
+                  </span>
                 </div>
-                <button onClick={(e) => {
-                  e.stopPropagation();
-                  removeRecipe(r.id);
-                }} className="text-[var(--color-ink-soft)] hover:text-red-500 p-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeRecipe(r.id);
+                  }}
+                  className="text-[var(--color-ink-soft)] hover:text-red-500 p-1"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>

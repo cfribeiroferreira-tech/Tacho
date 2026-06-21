@@ -36,9 +36,9 @@ export function useStore() {
         }
         if (parsed.weekPlan) {
           parsed.weekPlan = parsed.weekPlan.slice(0, 7).map((d: any) => ({
-             ...d,
-             pequeno_almoco: d.pequeno_almoco || null,
-             lanche: d.lanche || null,
+            ...d,
+            pequeno_almoco: d.pequeno_almoco || null,
+            lanche: d.lanche || null,
           }));
         }
         if (!parsed.menuHistory) {
@@ -92,6 +92,8 @@ export function useStore() {
     }
   }, [state.sharedRoomId]);
 
+  const previousStateStr = useRef(JSON.stringify(state));
+
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -99,19 +101,47 @@ export function useStore() {
       console.warn("Error saving to localStorage", error);
     }
 
+    const stateStr = JSON.stringify(state);
+    const prevStateStr = previousStateStr.current;
+    previousStateStr.current = stateStr;
+
+    // We need to know if the only thing that changed was sharedRoomId.
+    let onlyRoomChanged = false;
+    try {
+      const p = JSON.parse(prevStateStr);
+      const c = JSON.parse(stateStr);
+
+      const pId = p.sharedRoomId;
+      const cId = c.sharedRoomId;
+
+      p.sharedRoomId = null;
+      c.sharedRoomId = null;
+
+      if (JSON.stringify(p) === JSON.stringify(c) && pId !== cId) {
+        onlyRoomChanged = true;
+      }
+    } catch (e) {}
+
     // Broadcast change if we are in a room and change didn't come from socket
     if (
       state.sharedRoomId &&
       socketRef.current &&
-      !isUpdatingFromSocket.current
+      !isUpdatingFromSocket.current &&
+      !onlyRoomChanged
     ) {
       socketRef.current.emit("state-update", state.sharedRoomId, state);
     }
   }, [state]);
 
-  const updateState = useCallback((updates: Partial<AppState>) => {
-    setState((prev) => ({ ...prev, ...updates }));
-  }, []);
+  const updateState = useCallback(
+    (updates: Partial<AppState> | ((prev: AppState) => Partial<AppState>)) => {
+      setState((prev) => {
+        const u = typeof updates === "function" ? updates(prev) : updates;
+        return { ...prev, ...u };
+      });
+    },
+    [],
+  );
 
   return [state, updateState] as const;
 }

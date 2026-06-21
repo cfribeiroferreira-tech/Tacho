@@ -1,31 +1,78 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Book, Calendar, Refrigerator, ShoppingCart, ArrowRight, Layers } from 'lucide-react';
-import { Tab } from '../types';
+import React, { useState } from "react";
+import { motion } from "motion/react";
+import {
+  Book,
+  Calendar,
+  Refrigerator,
+  ShoppingCart,
+  Layers,
+  Users,
+  Copy,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import { Tab, AppState } from "../types";
 
 interface LandingPageProps {
   goToTab: (tab: Tab) => void;
+  appState: AppState;
+  updateState: (updates: Partial<AppState>) => void;
+  showToast: (msg: string) => void;
 }
 
-export default function LandingPage({ goToTab }: LandingPageProps) {
+export default function LandingPage({
+  goToTab,
+  appState,
+  updateState,
+  showToast,
+}: LandingPageProps) {
+  const [roomIdInput, setRoomIdInput] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+
+  const generateRoomId = () => {
+    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    updateState({ sharedRoomId: newId });
+    showToast(`Código ${newId} gerado!`);
+  };
+
+  const joinRoom = () => {
+    if (roomIdInput.trim()) {
+      updateState({ sharedRoomId: roomIdInput.trim().toUpperCase() });
+      showToast(`A sincronizar...`);
+    }
+  };
+
+  const leaveRoom = () => {
+    updateState({ sharedRoomId: null });
+    showToast("Saíste da partilha.");
+  };
+
+  const copyCode = () => {
+    if (appState.sharedRoomId) {
+      navigator.clipboard.writeText(appState.sharedRoomId);
+      setIsCopied(true);
+      showToast("Código copiado!");
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
+        delayChildren: 0.2,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
-      transition: { type: "spring", stiffness: 100, damping: 12 }
-    }
+      transition: { type: "spring", stiffness: 100, damping: 12 },
+    },
   };
 
   return (
@@ -33,7 +80,7 @@ export default function LandingPage({ goToTab }: LandingPageProps) {
       {/* Background Image */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/80 to-gray-900/40 z-10 mix-blend-multiply" />
-        <img 
+        <img
           src="https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=1920&q=80"
           alt="Kitchen/Food background"
           className="w-full h-full object-cover opacity-50"
@@ -43,112 +90,224 @@ export default function LandingPage({ goToTab }: LandingPageProps) {
       {/* Content */}
       <div className="relative z-10 flex flex-col min-h-screen px-6 py-12 lg:px-12 xl:px-24">
         <motion.div
-           initial={{ opacity: 0, y: -20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.8, ease: "easeOut" }}
-           className="mt-8 mb-16 md:mt-24"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mt-8 mb-16 md:mt-24"
         >
           <div className="flex items-center gap-3 mb-4 md:mb-6">
             <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
               <span className="font-black text-2xl text-white">T</span>
             </div>
-            <h2 className="text-2xl font-black tracking-widest text-orange-400 uppercase">Tacho</h2>
+            <h2 className="text-2xl font-black tracking-widest text-orange-400 uppercase">
+              Tacho
+            </h2>
           </div>
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 max-w-3xl leading-[1.15]">
-            O teu assistente <br/><span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 drop-shadow-sm">na cozinha.</span>
+            O teu assistente <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-amber-300 to-yellow-200 drop-shadow-sm">
+              na cozinha.
+            </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl font-light mb-10 leading-relaxed md:leading-relaxed">
-            Simplifica o teu dia a dia. Gere a despensa, cria o menu da semana sem esforço,
-            descobre novas receitas e mantém a tua lista de compras sempre atualizada.
+            Simplifica o teu dia a dia. Gere a despensa, cria o menu da semana
+            sem esforço, descobre novas receitas e mantém a tua lista de compras
+            sempre atualizada.
           </p>
 
-          <button 
-            onClick={() => goToTab('semana')}
+          <button
+            onClick={() => goToTab("semana")}
             className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-orange-500 text-white font-semibold rounded-full overflow-hidden transition-transform active:scale-95 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-xl shadow-orange-500/20"
           >
             <span className="relative z-10 flex items-center gap-2">
-              Começar a Planear <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Começar a Planear{" "}
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </span>
           </button>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-auto pb-8"
         >
           {/* Quick Links Grid */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
-            onClick={() => goToTab('receitas')}
+            onClick={() => goToTab("receitas")}
             className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
           >
             <div className="shrink-0 w-14 h-14 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-500/30 transition-all">
               <Book className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white mb-1">Receitas</h3>
-              <p className="text-sm text-gray-400 leading-snug">Descobre novas ideias</p>
+              <h3 className="font-semibold text-xl text-white mb-1">
+                Receitas
+              </h3>
+              <p className="text-sm text-gray-400 leading-snug">
+                Descobre novas ideias
+              </p>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
-            onClick={() => goToTab('semana')}
+            onClick={() => goToTab("semana")}
             className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
           >
             <div className="shrink-0 w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/30 transition-all">
               <Calendar className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white mb-1">Menu Semanal</h3>
-              <p className="text-sm text-gray-400 leading-snug">Organiza as tuas refeições</p>
+              <h3 className="font-semibold text-xl text-white mb-1">
+                Menu Semanal
+              </h3>
+              <p className="text-sm text-gray-400 leading-snug">
+                Organiza as tuas refeições
+              </p>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
-            onClick={() => goToTab('menus')}
+            onClick={() => goToTab("menus")}
             className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
           >
             <div className="shrink-0 w-14 h-14 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-500/30 transition-all">
               <Layers className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white mb-1">Coleções</h3>
-              <p className="text-sm text-gray-400 leading-snug">Ementas personalizadas</p>
+              <h3 className="font-semibold text-xl text-white mb-1">
+                Coleções
+              </h3>
+              <p className="text-sm text-gray-400 leading-snug">
+                Ementas personalizadas
+              </p>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
-            onClick={() => goToTab('despensa')}
+            onClick={() => goToTab("despensa")}
             className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
           >
             <div className="shrink-0 w-14 h-14 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-teal-500/30 transition-all">
               <Refrigerator className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white mb-1">A Minha Despensa</h3>
-              <p className="text-sm text-gray-400 leading-snug">Gere o teu inventário</p>
+              <h3 className="font-semibold text-xl text-white mb-1">
+                A Minha Despensa
+              </h3>
+              <p className="text-sm text-gray-400 leading-snug">
+                Gere o teu inventário
+              </p>
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             variants={itemVariants}
-            onClick={() => goToTab('lista')}
+            onClick={() => goToTab("lista")}
             className="group cursor-pointer bg-white/5 backdrop-blur-md hover:bg-white/10 border border-white/10 p-6 rounded-2xl transition-all duration-300 flex items-center gap-6"
           >
             <div className="shrink-0 w-14 h-14 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/30 transition-all">
               <ShoppingCart className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white mb-1">Lista de Compras</h3>
-              <p className="text-sm text-gray-400 leading-snug">O que falta comprar</p>
+              <h3 className="font-semibold text-xl text-white mb-1">
+                Lista de Compras
+              </h3>
+              <p className="text-sm text-gray-400 leading-snug">
+                O que falta comprar
+              </p>
             </div>
           </motion.div>
+        </motion.div>
 
+        {/* Sync / Share Section */}
+        <motion.div
+          variants={itemVariants}
+          className="mt-8 bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-2xl text-left"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="shrink-0 w-10 h-10 rounded-full bg-[var(--color-brand)]/20 text-[var(--color-brand)] flex items-center justify-center">
+              <Users size={20} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg text-white">
+                Partilha em Família
+              </h3>
+              <p className="text-xs text-gray-400">
+                Sincroniza compras e menus em tempo real.
+              </p>
+            </div>
+          </div>
+
+          {appState.sharedRoomId ? (
+            <div className="bg-white/5 rounded-xl p-4 border border-white/10 text-center">
+              <p className="text-sm text-gray-300 mb-2">
+                A tua conta está sincronizada. Código:
+              </p>
+              <div className="text-2xl font-mono tracking-widest font-bold text-[var(--color-brand)] mb-4">
+                {appState.sharedRoomId}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={copyCode}
+                  className="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg flex items-center justify-center text-sm transition-colors"
+                >
+                  {isCopied ? (
+                    <CheckCircle2 size={16} className="mr-2 text-green-400" />
+                  ) : (
+                    <Copy size={16} className="mr-2" />
+                  )}
+                  {isCopied ? "Copiado" : "Copiar"}
+                </button>
+                <button
+                  onClick={leaveRoom}
+                  className="flex-1 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg text-sm transition-colors"
+                >
+                  Desconectar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+                Podes partilhar um código com outra pessoa. Ambos verão o mesmo
+                plano semanal e despensa as alterações num telemóvel vão surgir
+                no outro instantaneamente!
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={generateRoomId}
+                  className="flex-1 btn-primary py-3 px-4 text-sm whitespace-nowrap"
+                >
+                  Criar Partilha
+                </button>
+                <div className="flex-1 right relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Inserir código..."
+                    value={roomIdInput}
+                    onChange={(e) =>
+                      setRoomIdInput(e.target.value.toUpperCase())
+                    }
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-[var(--color-brand)] uppercase"
+                    maxLength={6}
+                  />
+                  {roomIdInput.length > 0 && (
+                    <button
+                      onClick={joinRoom}
+                      className="absolute right-2 text-[var(--color-brand)] font-bold text-sm bg-[var(--color-brand)]/20 px-2 py-1 rounded-lg"
+                    >
+                      Entrar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

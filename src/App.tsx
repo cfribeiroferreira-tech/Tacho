@@ -55,7 +55,7 @@ export default function App() {
   const renderTab = () => {
     switch (activeTab) {
       case "home":
-        return <LandingPage goToTab={setActiveTab} />;
+        return <LandingPage goToTab={setActiveTab} appState={state} updateState={updateState} showToast={showToast} />;
       case "menus":
         return (
           <MenusTab
