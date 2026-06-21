@@ -6,6 +6,8 @@ import {
   Trash2,
   ShoppingCart,
   ShoppingBag,
+  Users,
+  X,
 } from "lucide-react";
 import { recipes } from "../data/recipes";
 import { AnimatePresence, motion } from "motion/react";
@@ -26,7 +28,9 @@ export default function MenusTab({
   showToast,
   goToTab,
 }: Props) {
-  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
+  const selectedMenuId = appState.activeCustomMenuId || null;
+  const setSelectedMenuId = (id: string | null) =>
+    updateState({ activeCustomMenuId: id });
   const menus = appState.customMenus || [];
 
   const favoritesMenu: CustomMenu = {
@@ -164,6 +168,8 @@ function MenuEditor({
   showToast,
 }: any) {
   const [showRecipeModal, setShowRecipeModal] = useState<any>(null);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [showFamilyModal, setShowFamilyModal] = useState(false);
 
   const updateMenuName = (name: string) => {
     if (menu.id === "favorites") return;
@@ -196,6 +202,56 @@ function MenuEditor({
     .map((id: string) => recipes.find((r) => r.id === id))
     .filter(Boolean);
 
+  const adultsCount =
+    menu.id === "favorites"
+      ? (appState.favoritesPortions?.adultsCount ?? appState.adultsCount ?? 2)
+      : menu.adultsCount !== undefined
+        ? menu.adultsCount
+        : appState.adultsCount || 2;
+  const children =
+    menu.id === "favorites"
+      ? (appState.favoritesPortions?.children ?? appState.children ?? [])
+      : menu.children !== undefined
+        ? menu.children
+        : appState.children || [];
+
+  const updateMenuAdults = (newCount: number) => {
+    if (menu.id === "favorites") {
+      updateState((prev: AppState) => ({
+        favoritesPortions: {
+          ...(prev.favoritesPortions || {}),
+          adultsCount: newCount,
+        },
+      }));
+      return;
+    }
+    updateState((prev: AppState) => {
+      const updatedMenus = (prev.customMenus || []).map((m: CustomMenu) =>
+        m.id === menu.id ? { ...m, adultsCount: newCount } : m,
+      );
+      return { customMenus: updatedMenus };
+    });
+  };
+
+  const updateMenuChildren = (newChildren: { age: number }[]) => {
+    if (menu.id === "favorites") {
+      updateState((prev: AppState) => ({
+        favoritesPortions: {
+          ...(prev.favoritesPortions || {}),
+          adultsCount: prev.favoritesPortions?.adultsCount ?? prev.adultsCount,
+          children: newChildren,
+        },
+      }));
+      return;
+    }
+    updateState((prev: AppState) => {
+      const updatedMenus = (prev.customMenus || []).map((m: CustomMenu) =>
+        m.id === menu.id ? { ...m, children: newChildren } : m,
+      );
+      return { customMenus: updatedMenus };
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
@@ -210,10 +266,58 @@ function MenuEditor({
           value={menu.name}
           readOnly={menu.id === "favorites"}
           onChange={(e) => updateMenuName(e.target.value)}
-          className={`font-bold text-xl bg-transparent flex-1 border-b py-1 transition-colors outline-none
-            ${menu.id === "favorites" ? "border-transparent text-[var(--color-brand)]" : "border-transparent py-1 hover:border-[var(--color-line)] focus:border-[var(--color-brand)]"}
+          onFocus={() => setIsEditingName(true)}
+          onBlur={(e) => {
+            setIsEditingName(false);
+            if (e.target.value.trim() === "") {
+              updateMenuName("Nova Lista");
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              if (e.currentTarget.value.trim() === "") {
+                updateMenuName("Nova Lista");
+              }
+              e.currentTarget.blur();
+              showToast("Nome atualizado!");
+            }
+          }}
+          className={`font-bold text-xl bg-transparent flex-1 border-b transition-colors outline-none w-full
+            ${
+              menu.id === "favorites"
+                ? "border-transparent text-[var(--color-brand)] py-1"
+                : "border-transparent py-1 hover:border-[var(--color-line)] focus:border-[var(--color-brand)]"
+            }
           `}
         />
+        {menu.id !== "favorites" && isEditingName && (
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const input = e.currentTarget
+                .previousElementSibling as HTMLInputElement;
+              if (input) input.blur();
+              showToast("Nome atualizado!");
+            }}
+            className="px-3 py-1.5 bg-[var(--color-ink)] text-white text-sm font-medium rounded-lg shadow-sm active:scale-95 transition-transform shrink-0"
+          >
+            Guardar
+          </button>
+        )}
+      </div>
+
+      <div className="mb-6 flex">
+        <div
+          className="flex items-center space-x-3 bg-white px-3 py-1.5 rounded-full border border-[var(--color-line)] shadow-sm cursor-pointer shrink-0"
+          onClick={() => setShowFamilyModal(true)}
+        >
+          <div className="flex items-center space-x-1 font-medium text-sm text-[var(--color-ink)]">
+            <Users size={14} />
+            <span>
+              {adultsCount} Adultos, {children.length} Crianças
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-[var(--color-line)] p-4 shadow-sm">
@@ -224,8 +328,8 @@ function MenuEditor({
               // Add a generic flag to know we want to pick a recipe for THIS menu
               updateState({
                 pendingRecipeSelection: {
-                  day: "Segunda",
-                  meal: menu.id as any,
+                  type: "menu",
+                  menuId: menu.id,
                 },
               });
               goToTab("receitas");
@@ -269,6 +373,16 @@ function MenuEditor({
         )}
       </div>
 
+      {showFamilyModal && (
+        <FamilyConfigModal
+          adultsCount={adultsCount}
+          childrenList={children}
+          onAdultsChange={updateMenuAdults}
+          onChildrenChange={updateMenuChildren}
+          onClose={() => setShowFamilyModal(false)}
+        />
+      )}
+
       {showRecipeModal && (
         <RecipeDetailModal
           recipe={showRecipeModal}
@@ -279,6 +393,134 @@ function MenuEditor({
           goToTab={goToTab}
         />
       )}
+    </div>
+  );
+}
+
+function FamilyConfigModal({
+  adultsCount,
+  childrenList,
+  onAdultsChange,
+  onChildrenChange,
+  onClose,
+}: any) {
+  const [localAdults, setLocalAdults] = useState(adultsCount || 2);
+  const [localChildren, setLocalChildren] = useState<{ age: number }[]>(
+    childrenList || [],
+  );
+
+  const save = () => {
+    onAdultsChange(localAdults);
+    onChildrenChange(localChildren);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-[#FAF9F6] w-full max-w-lg sm:rounded-3xl rounded-t-3xl p-6 shadow-xl pb-10">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold font-display text-[var(--color-ink)]">
+            Configurar Família
+          </h2>
+          <button
+            onClick={save}
+            className="text-[var(--color-ink-soft)] hover:text-[var(--color-ink)] p-2"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <label className="font-bold text-[var(--color-ink)]">Adultos</label>
+            <div className="flex items-center space-x-4 bg-white border border-[var(--color-line)] rounded-full px-4 py-2">
+              <button
+                onClick={() => setLocalAdults(Math.max(1, localAdults - 1))}
+                className="text-[var(--color-ink-soft)] font-medium text-lg"
+              >
+                -
+              </button>
+              <span className="font-bold w-4 text-center">{localAdults}</span>
+              <button
+                onClick={() => setLocalAdults(localAdults + 1)}
+                className="text-[var(--color-ink-soft)] font-medium text-lg"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="font-bold text-[var(--color-ink)]">
+                Crianças
+              </label>
+              <button
+                onClick={() => setLocalChildren([...localChildren, { age: 5 }])}
+                className="bg-[var(--color-paper)] border border-[var(--color-line)] px-3 py-1.5 rounded-lg text-sm font-bold text-[var(--color-ink)] flex items-center"
+              >
+                + Adicionar Criança
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {localChildren.map((child, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between bg-white border border-[var(--color-line)] p-3 rounded-xl"
+                >
+                  <span className="text-sm font-medium">
+                    Idade da criança {idx + 1}
+                  </span>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="number"
+                      min="0"
+                      max="17"
+                      value={child.age.toString()}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const newChildren = [...localChildren];
+                        let val = parseInt(e.target.value);
+                        if (isNaN(val)) val = 0;
+                        newChildren[idx] = {
+                          age: val,
+                        };
+                        setLocalChildren(newChildren);
+                      }}
+                      className="w-16 border border-[var(--color-line)] rounded-lg p-1.5 text-center font-bold"
+                    />
+                    <button
+                      onClick={() => {
+                        const newChildren = [...localChildren];
+                        newChildren.splice(idx, 1);
+                        setLocalChildren(newChildren);
+                      }}
+                      className="text-red-400 p-1"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {localChildren.length === 0 && (
+                <p className="text-sm text-[var(--color-ink-soft)] italic">
+                  Sem crianças configuradas.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <button
+            onClick={save}
+            className="w-full bg-[var(--color-brand)] text-white font-bold py-4 rounded-xl active:scale-95 transition-transform"
+          >
+            Guardar Configuração
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

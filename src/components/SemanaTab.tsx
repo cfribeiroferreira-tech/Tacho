@@ -1,7 +1,17 @@
 import { useState, useRef } from "react";
 import { AppState, DayPlan, Recipe } from "../types";
 import { getRecipeById, generateWeekMenu } from "../utils/engine";
-import { Users, Clock, Trash2, X, Sparkles, AlertCircle, Info, Download, ChevronLeft } from "lucide-react";
+import {
+  Users,
+  Clock,
+  Trash2,
+  X,
+  Sparkles,
+  AlertCircle,
+  Info,
+  Download,
+  ChevronLeft,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { RecipeDetailModal } from "./RecipeDetailModal";
 import { AdSlot } from "./AdSlot";
@@ -34,14 +44,14 @@ export default function SemanaTab({
       setIsExporting(true);
       showToast("A gerar imagem...");
       // small delay to let UI updates register
-      await new Promise(r => setTimeout(r, 100));
-      
+      await new Promise((r) => setTimeout(r, 100));
+
       const canvas = await html2canvas(printRef.current, {
         scale: 2,
         backgroundColor: "#FAFCFB", // same as bg default
         windowWidth: 800,
       });
-      
+
       const imgData = canvas.toDataURL("image/png");
       const a = document.createElement("a");
       a.href = imgData;
@@ -59,13 +69,13 @@ export default function SemanaTab({
   const saveCurrentToHistory = () => {
     // Only save if there's at least one meal planned
     const hasMeals = appState.weekPlan.some(
-      (day) => day.pequeno_almoco || day.almoco || day.lanche || day.jantar
+      (day) => day.pequeno_almoco || day.almoco || day.lanche || day.jantar,
     );
     if (!hasMeals) return;
 
     const currentTotalWeekCalories = appState.weekPlan.reduce((acc, day) => {
       let dcal = 0;
-      ["pequeno_almoco", "almoco", "lanche", "jantar"].forEach(m => {
+      ["pequeno_almoco", "almoco", "lanche", "jantar"].forEach((m) => {
         const meal = day[m as keyof DayPlan] as any;
         if (meal) {
           const rec = getRecipeById(meal.recipeId) || meal.customRecipe;
@@ -81,13 +91,13 @@ export default function SemanaTab({
       date: new Date().toISOString(),
       weekPlan: [...appState.weekPlan],
       tag: appState.generatorConfig?.focus || "Manual",
-      calories: avgCal
+      calories: avgCal,
     };
 
     const currentHistory = appState.menuHistory || [];
     // Keep last 10 entries max
     const newHistory = [...currentHistory, newHistoryItem].slice(-10);
-    
+
     updateState({ menuHistory: newHistory });
   };
 
@@ -98,7 +108,10 @@ export default function SemanaTab({
     }
   };
 
-  const removeMeal = (dayIdx: number, meal: "pequeno_almoco" | "almoco" | "lanche" | "jantar") => {
+  const removeMeal = (
+    dayIdx: number,
+    meal: "pequeno_almoco" | "almoco" | "lanche" | "jantar",
+  ) => {
     const updated = [...appState.weekPlan];
     updated[dayIdx] = { ...updated[dayIdx], [meal]: null };
     updateState({ weekPlan: updated });
@@ -117,25 +130,30 @@ export default function SemanaTab({
     showToast("Semana apagada");
   };
 
-  const runGeneratorLocal = (focus: string, mealTypes: ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[]) => {
+  const runGeneratorLocal = (
+    focus: string,
+    mealTypes: ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[],
+  ) => {
     saveCurrentToHistory();
     const mergePlan = (generatedPlan: any[]) => {
       return appState.weekPlan.map((day, idx) => {
         const newDay = generatedPlan[idx] || {};
         return {
           ...day,
-          pequeno_almoco: mealTypes.includes("Pequeno-almoço") ? (newDay.pequeno_almoco || null) : null,
-          almoco: mealTypes.includes("Almoço") ? (newDay.almoco || null) : null,
-          lanche: mealTypes.includes("Lanche") ? (newDay.lanche || null) : null,
-          jantar: mealTypes.includes("Jantar") ? (newDay.jantar || null) : null
+          pequeno_almoco: mealTypes.includes("Pequeno-almoço")
+            ? newDay.pequeno_almoco || null
+            : null,
+          almoco: mealTypes.includes("Almoço") ? newDay.almoco || null : null,
+          lanche: mealTypes.includes("Lanche") ? newDay.lanche || null : null,
+          jantar: mealTypes.includes("Jantar") ? newDay.jantar || null : null,
         };
       });
     };
 
     const newPlan = generateWeekMenu(focus, appState, mealTypes);
-    updateState({ 
+    updateState({
       weekPlan: mergePlan(newPlan),
-      generatorConfig: { focus, mealTypes }
+      generatorConfig: { focus, mealTypes },
     });
     setShowGenerator(false);
     showToast("Ementa sugerida através das receitas locais!");
@@ -143,7 +161,7 @@ export default function SemanaTab({
 
   const currentTotalWeekCalories = appState.weekPlan.reduce((acc, day) => {
     let dcal = 0;
-    ["pequeno_almoco", "almoco", "lanche", "jantar"].forEach(m => {
+    ["pequeno_almoco", "almoco", "lanche", "jantar"].forEach((m) => {
       const meal = day[m as keyof DayPlan] as any;
       if (meal) {
         const rec = getRecipeById(meal.recipeId) || meal.customRecipe;
@@ -152,12 +170,20 @@ export default function SemanaTab({
     });
     return acc + dcal;
   }, 0);
-  const activeDaysCount = appState.weekPlan.filter(day => day.pequeno_almoco || day.almoco || day.lanche || day.jantar).length;
-  const averageDayCalories = activeDaysCount > 0 ? Math.round(currentTotalWeekCalories / activeDaysCount) : 0;
+  const activeDaysCount = appState.weekPlan.filter(
+    (day) => day.pequeno_almoco || day.almoco || day.lanche || day.jantar,
+  ).length;
+  const averageDayCalories =
+    activeDaysCount > 0
+      ? Math.round(currentTotalWeekCalories / activeDaysCount)
+      : 0;
 
   return (
     <div className="pt-6 px-4 pb-24">
-      <button onClick={() => goToTab('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group hide-on-print">
+      <button
+        onClick={() => goToTab("home")}
+        className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group hide-on-print"
+      >
         <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
           <ChevronLeft size={16} />
         </div>
@@ -186,13 +212,19 @@ export default function SemanaTab({
           {appState.generatorConfig && (
             <div className="flex items-center space-x-1 bg-[var(--color-brand-soft)]/50 text-[var(--color-brand)] px-2 py-1 rounded-md">
               <Sparkles size={12} />
-              <span className="text-[11px] font-bold">Sugerido: {appState.generatorConfig.focus}</span>
+              <span className="text-[11px] font-bold">
+                Sugerido: {appState.generatorConfig.focus}
+              </span>
             </div>
           )}
           {averageDayCalories > 0 && (
-            <div className={`flex items-center space-x-1 px-2 py-1 rounded-md text-[11px] font-bold ${averageDayCalories > 2500 ? 'bg-orange-100 text-orange-700' : 'bg-[var(--color-paper)] text-[var(--color-ink-soft)] border border-[var(--color-line)]'}`}>
+            <div
+              className={`flex items-center space-x-1 px-2 py-1 rounded-md text-[11px] font-bold ${averageDayCalories > 2500 ? "bg-orange-100 text-orange-700" : "bg-[var(--color-paper)] text-[var(--color-ink-soft)] border border-[var(--color-line)]"}`}
+            >
               <Info size={12} />
-              <span>Aporte Calórico Médio: ~{averageDayCalories} kcal/dia/pessoa</span>
+              <span>
+                Aporte Calórico Médio: ~{averageDayCalories} kcal/dia/pessoa
+              </span>
             </div>
           )}
         </div>
@@ -227,19 +259,34 @@ export default function SemanaTab({
         </button>
       </div>
 
-      <div className="space-y-4" ref={printRef} style={isExporting ? { width: "800px", maxWidth: "800px", padding: "20px", background: "#FAFCFB" } : undefined}>
+      <div
+        className="space-y-4"
+        ref={printRef}
+        style={
+          isExporting
+            ? {
+                width: "800px",
+                maxWidth: "800px",
+                padding: "20px",
+                background: "#FAFCFB",
+              }
+            : undefined
+        }
+      >
         {isExporting && (
-           <h2 className="text-3xl font-display font-bold text-center mb-6 text-[var(--color-ink)]">
-             Ementa Semanal O Nosso Sabor
-           </h2>
+          <h2 className="text-3xl font-display font-bold text-center mb-6 text-[var(--color-ink)]">
+            Ementa Semanal O Nosso Sabor
+          </h2>
         )}
         {appState.weekPlan.flatMap((dayPlan, idx) => {
           let dayKcal = 0;
           const computeKcal = (meal: any) => {
-             if (!meal) return;
-             const isDirectRecipe = !!meal.name;
-             const r = isDirectRecipe ? meal : (meal.customRecipe || getRecipeById(meal.recipeId));
-             if (r) dayKcal += r.kcalPerServing || 0;
+            if (!meal) return;
+            const isDirectRecipe = !!meal.name;
+            const r = isDirectRecipe
+              ? meal
+              : meal.customRecipe || getRecipeById(meal.recipeId);
+            if (r) dayKcal += r.kcalPerServing || 0;
           };
           computeKcal(dayPlan.pequeno_almoco);
           computeKcal(dayPlan.almoco);
@@ -247,11 +294,19 @@ export default function SemanaTab({
           computeKcal(dayPlan.jantar);
 
           return [
-            ...(idx === 3 && !isExporting ? [<AdSlot key={`ad-${idx}`} type="rectangle" className="my-6 shadow-sm" />] : []),
+            ...(idx === 3 && !isExporting
+              ? [
+                  <AdSlot
+                    key={`ad-${idx}`}
+                    type="rectangle"
+                    className="my-6 shadow-sm"
+                  />,
+                ]
+              : []),
             <div
               key={`${dayPlan.day}-${idx}`}
               className="bg-white border border-[var(--color-line)] rounded-2xl p-4 shadow-sm page-break-inside-avoid"
-              style={{ pageBreakInside: 'avoid' }}
+              style={{ pageBreakInside: "avoid" }}
             >
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-display font-bold text-lg">
@@ -270,7 +325,13 @@ export default function SemanaTab({
                   meal={dayPlan.pequeno_almoco}
                   onRemove={() => removeMeal(idx, "pequeno_almoco")}
                   onAdd={() => {
-                    updateState({ pendingRecipeSelection: { day: dayPlan.day, meal: "pequeno_almoco" } });
+                    updateState({
+                      pendingRecipeSelection: {
+                        type: "weekPlan",
+                        day: dayPlan.day,
+                        meal: "pequeno_almoco",
+                      },
+                    });
                     goToTab("receitas");
                   }}
                   onViewRecipe={setViewingRecipe}
@@ -281,7 +342,13 @@ export default function SemanaTab({
                   meal={dayPlan.almoco}
                   onRemove={() => removeMeal(idx, "almoco")}
                   onAdd={() => {
-                    updateState({ pendingRecipeSelection: { day: dayPlan.day, meal: "almoco" } });
+                    updateState({
+                      pendingRecipeSelection: {
+                        type: "weekPlan",
+                        day: dayPlan.day,
+                        meal: "almoco",
+                      },
+                    });
                     goToTab("receitas");
                   }}
                   onViewRecipe={setViewingRecipe}
@@ -292,7 +359,13 @@ export default function SemanaTab({
                   meal={dayPlan.lanche}
                   onRemove={() => removeMeal(idx, "lanche")}
                   onAdd={() => {
-                    updateState({ pendingRecipeSelection: { day: dayPlan.day, meal: "lanche" } });
+                    updateState({
+                      pendingRecipeSelection: {
+                        type: "weekPlan",
+                        day: dayPlan.day,
+                        meal: "lanche",
+                      },
+                    });
                     goToTab("receitas");
                   }}
                   onViewRecipe={setViewingRecipe}
@@ -303,14 +376,20 @@ export default function SemanaTab({
                   meal={dayPlan.jantar}
                   onRemove={() => removeMeal(idx, "jantar")}
                   onAdd={() => {
-                    updateState({ pendingRecipeSelection: { day: dayPlan.day, meal: "jantar" } });
+                    updateState({
+                      pendingRecipeSelection: {
+                        type: "weekPlan",
+                        day: dayPlan.day,
+                        meal: "jantar",
+                      },
+                    });
                     goToTab("receitas");
                   }}
                   onViewRecipe={setViewingRecipe}
                   isExporting={isExporting}
                 />
               </div>
-            </div>
+            </div>,
           ];
         })}
       </div>
@@ -338,20 +417,22 @@ export default function SemanaTab({
             history={appState.menuHistory || []}
             onClose={() => setShowHistoryModal(false)}
             onRestore={(weekPlan: any) => {
-               saveCurrentToHistory();
-               updateState({ weekPlan });
-               setShowHistoryModal(false);
-               showToast("Ementa restaurada!");
+              saveCurrentToHistory();
+              updateState({ weekPlan });
+              setShowHistoryModal(false);
+              showToast("Ementa restaurada!");
             }}
             onClear={() => {
-               updateState({ menuHistory: [] });
-               setShowHistoryModal(false);
-               showToast("Histórico apagado!");
+              updateState({ menuHistory: [] });
+              setShowHistoryModal(false);
+              showToast("Histórico apagado!");
             }}
             onDeleteEntry={(id: string) => {
-               const newHistory = (appState.menuHistory || []).filter((h) => h.id !== id);
-               updateState({ menuHistory: newHistory });
-               showToast("Entrada apagada!");
+              const newHistory = (appState.menuHistory || []).filter(
+                (h) => h.id !== id,
+              );
+              updateState({ menuHistory: newHistory });
+              showToast("Entrada apagada!");
             }}
           />
         )}
@@ -412,7 +493,14 @@ export default function SemanaTab({
   );
 }
 
-function MealSlot({ label, meal, onRemove, onAdd, onViewRecipe, isExporting }: any) {
+function MealSlot({
+  label,
+  meal,
+  onRemove,
+  onAdd,
+  onViewRecipe,
+  isExporting,
+}: any) {
   // Check if meal actually has data
   if (!meal || (!meal.name && !meal.recipeId && !meal.customRecipe)) {
     if (isExporting) return null;
@@ -432,8 +520,10 @@ function MealSlot({ label, meal, onRemove, onAdd, onViewRecipe, isExporting }: a
   }
 
   const isDirectRecipe = !!meal.name;
-  const recipe = isDirectRecipe ? meal : (meal.customRecipe || getRecipeById(meal.recipeId));
-  
+  const recipe = isDirectRecipe
+    ? meal
+    : meal.customRecipe || getRecipeById(meal.recipeId);
+
   if (!recipe) {
     if (isExporting) return null;
     return (
@@ -451,7 +541,13 @@ function MealSlot({ label, meal, onRemove, onAdd, onViewRecipe, isExporting }: a
     );
   }
 
-  const cleanRecipeName = (name: string) => name ? name.replace(/[#*`_]+/g, "").replace(/\n/g, " ").trim() : "";
+  const cleanRecipeName = (name: string) =>
+    name
+      ? name
+          .replace(/[#*`_]+/g, "")
+          .replace(/\n/g, " ")
+          .trim()
+      : "";
 
   return (
     <div className="flex items-center relative h-12">
@@ -461,11 +557,21 @@ function MealSlot({ label, meal, onRemove, onAdd, onViewRecipe, isExporting }: a
       <div
         onClick={() => !isExporting && onViewRecipe && onViewRecipe(recipe)}
         className="flex-1 h-full min-w-0 max-w-full bg-[var(--color-paper)] border border-[var(--color-line)] rounded-xl py-2 px-3 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform overflow-hidden"
-        style={isExporting ? { border: '1px solid #e5e7eb', background: '#ffffff', cursor: 'default' } : undefined}
+        style={
+          isExporting
+            ? {
+                border: "1px solid #e5e7eb",
+                background: "#ffffff",
+                cursor: "default",
+              }
+            : undefined
+        }
       >
         <div className="flex items-center space-x-2 truncate pr-2">
           <span className="text-xl leading-none shrink-0">{recipe.emoji}</span>
-          <span className="text-sm font-medium truncate">{cleanRecipeName(recipe.name)}</span>
+          <span className="text-sm font-medium truncate">
+            {cleanRecipeName(recipe.name)}
+          </span>
         </div>
         {!isExporting && (
           <button
@@ -608,7 +714,16 @@ function FamilyConfigModal({ appState, updateState, onClose }: any) {
 }
 
 function GeneratorModal({ onClose, onGenerateLocal, initialConfig }: any) {
-  const [mealTypes, setMealTypes] = useState<("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[]>(initialConfig?.mealTypes || ["Pequeno-almoço", "Almoço", "Lanche", "Jantar"]);
+  const [mealTypes, setMealTypes] = useState<
+    ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[]
+  >(
+    initialConfig?.mealTypes || [
+      "Pequeno-almoço",
+      "Almoço",
+      "Lanche",
+      "Jantar",
+    ],
+  );
   const [focus, setFocus] = useState<string>(initialConfig?.focus || "Geral");
   const options = [
     "Geral",
@@ -647,21 +762,23 @@ function GeneratorModal({ onClose, onGenerateLocal, initialConfig }: any) {
         <div className="mb-6">
           <h4 className="font-bold mb-3">Refeições a preencher</h4>
           <div className="grid grid-cols-2 gap-2">
-            {["Pequeno-almoço", "Almoço", "Lanche", "Jantar"].map((type, idx) => (
+            {["Pequeno-almoço", "Almoço", "Lanche", "Jantar"].map(
+              (type, idx) => (
                 <button
                   key={`${type}-${idx}`}
                   onClick={() => {
-                    setMealTypes(prev =>
+                    setMealTypes((prev) =>
                       prev.includes(type as any)
-                        ? prev.filter(t => t !== type)
-                        : [...prev, type as any]
+                        ? prev.filter((t) => t !== type)
+                        : [...prev, type as any],
                     );
                   }}
                   className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium border transition-colors ${mealTypes.includes(type as any) ? "bg-[var(--color-brand)] text-white border-[var(--color-brand)]" : "bg-white text-[var(--color-ink-soft)] border-[var(--color-line)] hover:border-[var(--color-brand)]"}`}
                 >
                   {type}
                 </button>
-             ))}
+              ),
+            )}
           </div>
         </div>
 
@@ -698,9 +815,17 @@ function GeneratorModal({ onClose, onGenerateLocal, initialConfig }: any) {
   );
 }
 
-function HistoryModal({ history, onClose, onRestore, onClear, onDeleteEntry }: any) {
+function HistoryModal({
+  history,
+  onClose,
+  onRestore,
+  onClear,
+  onDeleteEntry,
+}: any) {
   // Sort history newest first
-  const sorted = [...history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = [...history].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
 
   return (
     <>
@@ -734,30 +859,53 @@ function HistoryModal({ history, onClose, onRestore, onClear, onDeleteEntry }: a
           <div className="text-center py-10 text-[var(--color-ink-soft)]">
             <Clock size={40} className="mx-auto mb-4 opacity-20" />
             <p>O histórico está vazio.</p>
-            <p className="text-sm mt-2">Gera ou apaga ementas para guardar o progresso automaticamente.</p>
+            <p className="text-sm mt-2">
+              Gera ou apaga ementas para guardar o progresso automaticamente.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
             {sorted.map((item: any, idx: number) => {
               const d = new Date(item.date);
-              const dateStr = d.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
-              
+              const dateStr = d.toLocaleDateString("pt-PT", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
               // Preview text
-              const firstMeals = item.weekPlan.slice(0, 3).map((w: any) => {
-                 let mealName = "Refeição";
-                 if (w.jantar) {
-                   mealName = w.jantar.name || w.jantar.customRecipe?.name || getRecipeById(w.jantar.recipeId)?.name || "Jantar";
-                 } else if (w.almoco) {
-                   mealName = w.almoco.name || w.almoco.customRecipe?.name || getRecipeById(w.almoco.recipeId)?.name || "Almoço";
-                 }
-                 return mealName;
-              }).join(", ");
+              const firstMeals = item.weekPlan
+                .slice(0, 3)
+                .map((w: any) => {
+                  let mealName = "Refeição";
+                  if (w.jantar) {
+                    mealName =
+                      w.jantar.name ||
+                      w.jantar.customRecipe?.name ||
+                      getRecipeById(w.jantar.recipeId)?.name ||
+                      "Jantar";
+                  } else if (w.almoco) {
+                    mealName =
+                      w.almoco.name ||
+                      w.almoco.customRecipe?.name ||
+                      getRecipeById(w.almoco.recipeId)?.name ||
+                      "Almoço";
+                  }
+                  return mealName;
+                })
+                .join(", ");
 
               return (
-                <div key={`${item.id}-${idx}`} className="bg-white border border-[var(--color-line)] p-4 rounded-xl shadow-sm">
+                <div
+                  key={`${item.id}-${idx}`}
+                  className="bg-white border border-[var(--color-line)] p-4 rounded-xl shadow-sm"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="font-bold text-[var(--color-ink)]">Salvo em {dateStr}</div>
+                      <div className="font-bold text-[var(--color-ink)]">
+                        Salvo em {dateStr}
+                      </div>
                       <div className="flex flex-wrap gap-2 mt-1">
                         {item.tag && (
                           <span className="text-[10px] font-bold text-[var(--color-brand)] bg-[var(--color-brand-soft)]/50 px-2 py-0.5 rounded-md">

@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { AppState, Category, Recipe } from "../types";
 import { recipes } from "../data/recipes";
-import { Search, Plus, X, Clock, Info, ExternalLink, ChevronLeft } from "lucide-react";
+import {
+  Search,
+  Plus,
+  X,
+  Clock,
+  Info,
+  ExternalLink,
+  ChevronLeft,
+} from "lucide-react";
 import { getCalorieBadgeLevel, removeAccents } from "../utils/engine";
 import { AnimatePresence, motion } from "motion/react";
 import { RecipeDetailModal } from "./RecipeDetailModal";
@@ -26,7 +34,6 @@ const CATEGORIES: Category[] = [
   "Praia",
 ];
 
-
 interface Props {
   appState: AppState;
   updateState: (updates: Partial<AppState>) => void;
@@ -49,7 +56,7 @@ export default function ReceitasTab({
       setActiveCats(["Todas"]);
       return;
     }
-    
+
     let newCats = activeCats.filter((c) => c !== "Todas");
     if (newCats.includes(cat)) {
       newCats = newCats.filter((c) => c !== cat);
@@ -63,19 +70,24 @@ export default function ReceitasTab({
   const filtered = recipes.filter((r) => {
     const matchesSearch = removeAccents(r.name).includes(removeAccents(search));
     const isFavorito = appState.favorites?.includes(r.id);
-    
+
     // activeCats.includes("Todas") is handled if activeCats=[Todas], true for all
-    const matchesCat = activeCats.includes("Todas") || activeCats.every((cat) => {
-      if (cat === "Favoritos") return isFavorito;
-      return r.tags.includes(cat);
-    });
+    const matchesCat =
+      activeCats.includes("Todas") ||
+      activeCats.every((cat) => {
+        if (cat === "Favoritos") return isFavorito;
+        return r.tags.includes(cat);
+      });
 
     return matchesSearch && matchesCat;
   });
 
   return (
     <div className="pt-6 px-4">
-      <button onClick={() => goToTab('home')} className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group">
+      <button
+        onClick={() => goToTab("home")}
+        className="flex items-center text-sm text-[var(--color-ink-soft)] font-medium mb-4 hover:text-[var(--color-ink)] transition-colors active:scale-95 group"
+      >
         <div className="bg-white border border-[var(--color-line)] rounded-full p-1 mr-2 group-hover:bg-gray-50">
           <ChevronLeft size={16} />
         </div>
@@ -85,16 +97,33 @@ export default function ReceitasTab({
         {appState.pendingRecipeSelection ? (
           <div className="bg-[var(--color-brand-soft)]/50 border border-[var(--color-brand)] p-3 rounded-2xl flex justify-between items-center mb-4">
             <div>
-              <div className="text-xs font-bold text-[var(--color-brand)]">A ESCOLHER PARA</div>
+              <div className="text-xs font-bold text-[var(--color-brand)]">
+                A ESCOLHER PARA
+              </div>
               <div className="text-sm">
-                {appState.pendingRecipeSelection.day} -{" "}
-                {appState.pendingRecipeSelection.meal.replace("_", "-")}
+                {appState.pendingRecipeSelection.type === "menu" ? (
+                  <>
+                    Coleção:{" "}
+                    {appState.customMenus?.find(
+                      (m) => m.id === appState.pendingRecipeSelection?.menuId,
+                    )?.name || "Favoritos"}
+                  </>
+                ) : (
+                  <>
+                    {appState.pendingRecipeSelection.day} -{" "}
+                    {appState.pendingRecipeSelection.meal?.replace("_", "-")}
+                  </>
+                )}
               </div>
             </div>
             <button
               onClick={() => {
                 updateState({ pendingRecipeSelection: undefined });
-                goToTab("semana");
+                if (appState.pendingRecipeSelection?.type === "menu") {
+                  goToTab("menus");
+                } else {
+                  goToTab("semana");
+                }
               }}
               className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium border border-[var(--color-line)] shrink-0"
             >
@@ -150,29 +179,74 @@ export default function ReceitasTab({
         {filtered.flatMap((recipe, index) => {
           const isAdSlot = index > 0 && index % 4 === 0;
           return [
-            ...(isAdSlot ? [<div key={`ad-${index}`} className="col-span-2 px-1"><AdSlot type="banner" className="opacity-90 my-1" /></div>] : []),
+            ...(isAdSlot
+              ? [
+                  <div key={`ad-${index}`} className="col-span-2 px-1">
+                    <AdSlot type="banner" className="opacity-90 my-1" />
+                  </div>,
+                ]
+              : []),
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
               onClick={() => {
                 if (appState.pendingRecipeSelection) {
-                  const { day, meal } = appState.pendingRecipeSelection;
-                  const updatedPlan = [...appState.weekPlan];
-                  const dayIndex = updatedPlan.findIndex((d) => d.day === day);
-                  if (dayIndex > -1) {
-                    updatedPlan[dayIndex] = {
-                      ...updatedPlan[dayIndex],
-                      [meal]: { id: Math.random().toString(36), recipeId: recipe.id },
-                    };
-                    updateState({ weekPlan: updatedPlan, pendingRecipeSelection: undefined });
-                    showToast(`${recipe.name} adicionado!`);
-                    goToTab("semana");
+                  if (appState.pendingRecipeSelection.type === "menu") {
+                    const menuId = appState.pendingRecipeSelection.menuId;
+                    if (menuId === "favorites") {
+                      if (!appState.favorites?.includes(recipe.id)) {
+                        updateState((prev) => ({
+                          favorites: [...(prev.favorites || []), recipe.id],
+                          pendingRecipeSelection: undefined,
+                        }));
+                        showToast(`${recipe.name} adicionado aos Favoritos!`);
+                      } else {
+                        showToast(`Receita já está nos Favoritos!`);
+                        updateState({ pendingRecipeSelection: undefined });
+                      }
+                    } else {
+                      updateState((prev) => {
+                        const updatedMenus = (prev.customMenus || []).map(
+                          (m) =>
+                            m.id === menuId && !m.recipeIds.includes(recipe.id)
+                              ? { ...m, recipeIds: [...m.recipeIds, recipe.id] }
+                              : m,
+                        );
+                        return {
+                          customMenus: updatedMenus,
+                          pendingRecipeSelection: undefined,
+                        };
+                      });
+                      showToast(`${recipe.name} adicionado à coleção!`);
+                    }
+                    goToTab("menus");
+                  } else {
+                    const { day, meal } = appState.pendingRecipeSelection;
+                    const updatedPlan = [...appState.weekPlan];
+                    const dayIndex = updatedPlan.findIndex(
+                      (d) => d.day === day,
+                    );
+                    if (dayIndex > -1 && meal) {
+                      updatedPlan[dayIndex] = {
+                        ...updatedPlan[dayIndex],
+                        [meal]: {
+                          id: Math.random().toString(36),
+                          recipeId: recipe.id,
+                        },
+                      };
+                      updateState({
+                        weekPlan: updatedPlan,
+                        pendingRecipeSelection: undefined,
+                      });
+                      showToast(`${recipe.name} adicionado!`);
+                      goToTab("semana");
+                    }
                   }
                 } else {
                   setSelectedRecipe(recipe);
                 }
               }}
-            />
+            />,
           ];
         })}
         {filtered.length === 0 && (

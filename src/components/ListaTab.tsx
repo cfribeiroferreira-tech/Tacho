@@ -89,7 +89,25 @@ export default function ListaTab({
       }
     }
 
-    return generateShoppingList(plan, appState.peopleCount, appState.pantry);
+    let effectivePeopleCount = appState.peopleCount;
+    if (
+      appState.activeListView?.type === "menu" &&
+      appState.activeListView.menuId !== "favorites"
+    ) {
+      const menu = appState.customMenus?.find(
+        (m) => m.id === appState.activeListView?.menuId,
+      );
+      if (
+        menu &&
+        (menu.adultsCount !== undefined || menu.children !== undefined)
+      ) {
+        const adults = menu.adultsCount ?? 2;
+        const kids = menu.children ?? [];
+        effectivePeopleCount = adults + kids.length;
+      }
+    }
+
+    return generateShoppingList(plan, effectivePeopleCount, appState.pantry);
   }, [
     appState.weekPlan,
     appState.peopleCount,
@@ -190,10 +208,31 @@ export default function ListaTab({
   }, [grouped, appState.boughtItems]);
 
   const handleShareText = async () => {
+    let effectiveAdultsCount = appState.adultsCount;
+    let effectiveChildren = appState.children;
+    let effectivePeopleCount = appState.peopleCount;
+
+    if (
+      appState.activeListView?.type === "menu" &&
+      appState.activeListView.menuId !== "favorites"
+    ) {
+      const menu = appState.customMenus?.find(
+        (m) => m.id === appState.activeListView?.menuId,
+      );
+      if (
+        menu &&
+        (menu.adultsCount !== undefined || menu.children !== undefined)
+      ) {
+        effectiveAdultsCount = menu.adultsCount ?? 2;
+        effectiveChildren = menu.children ?? [];
+        effectivePeopleCount = effectiveAdultsCount + effectiveChildren.length;
+      }
+    }
+
     const familyStr =
-      appState.children && appState.children.length > 0
-        ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
-        : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`;
+      effectiveChildren && effectiveChildren.length > 0
+        ? `${effectiveAdultsCount} Adultos, ${effectiveChildren.length} Crianças`
+        : `${effectivePeopleCount} ${effectivePeopleCount === 1 ? "pessoa" : "pessoas"}`;
 
     let text = `Lista de Compras (${familyStr})\n\n`;
 
@@ -237,11 +276,32 @@ export default function ListaTab({
     doc.setFontSize(20);
     doc.text("Lista de Compras", 14, 22);
 
+    let effectiveAdultsCount = appState.adultsCount;
+    let effectiveChildren = appState.children;
+    let effectivePeopleCount = appState.peopleCount;
+
+    if (
+      appState.activeListView?.type === "menu" &&
+      appState.activeListView.menuId !== "favorites"
+    ) {
+      const menu = appState.customMenus?.find(
+        (m) => m.id === appState.activeListView?.menuId,
+      );
+      if (
+        menu &&
+        (menu.adultsCount !== undefined || menu.children !== undefined)
+      ) {
+        effectiveAdultsCount = menu.adultsCount ?? 2;
+        effectiveChildren = menu.children ?? [];
+        effectivePeopleCount = effectiveAdultsCount + effectiveChildren.length;
+      }
+    }
+
     doc.setFontSize(11);
     const familyStr =
-      appState.children && appState.children.length > 0
-        ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
-        : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`;
+      effectiveChildren && effectiveChildren.length > 0
+        ? `${effectiveAdultsCount} Adultos, ${effectiveChildren.length} Crianças`
+        : `${effectivePeopleCount} ${effectivePeopleCount === 1 ? "pessoa" : "pessoas"}`;
 
     doc.text(`Para ${familyStr}`, 14, 30);
 
@@ -362,9 +422,34 @@ export default function ListaTab({
             </h1>
           </div>
           <p className="text-[var(--color-ink-soft)] text-sm">
-            {appState.children && appState.children.length > 0
-              ? `${appState.adultsCount} Adultos, ${appState.children.length} Crianças`
-              : `${appState.peopleCount} ${appState.peopleCount === 1 ? "pessoa" : "pessoas"}`}
+            {(() => {
+              let effectiveAdultsCount = appState.adultsCount;
+              let effectiveChildren = appState.children;
+              let effectivePeopleCount = appState.peopleCount;
+
+              if (
+                appState.activeListView?.type === "menu" &&
+                appState.activeListView.menuId !== "favorites"
+              ) {
+                const menu = appState.customMenus?.find(
+                  (m) => m.id === appState.activeListView?.menuId,
+                );
+                if (
+                  menu &&
+                  (menu.adultsCount !== undefined ||
+                    menu.children !== undefined)
+                ) {
+                  effectiveAdultsCount = menu.adultsCount ?? 2;
+                  effectiveChildren = menu.children ?? [];
+                  effectivePeopleCount =
+                    effectiveAdultsCount + effectiveChildren.length;
+                }
+              }
+
+              return effectiveChildren && effectiveChildren.length > 0
+                ? `${effectiveAdultsCount} Adultos, ${effectiveChildren.length} Crianças`
+                : `${effectivePeopleCount} ${effectivePeopleCount === 1 ? "pessoa" : "pessoas"}`;
+            })()}
           </p>
         </div>
         <div className="flex space-x-2">

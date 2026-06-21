@@ -116,17 +116,21 @@ export interface AppState {
   sharedRoomId?: string | null;
   menuHistory?: MenuHistoryItem[];
   pendingRecipeSelection?: {
-    day: DayOfWeek;
-    meal: "pequeno_almoco" | "almoco" | "lanche" | "jantar";
+    type?: "weekPlan" | "menu";
+    day?: DayOfWeek;
+    meal?: "pequeno_almoco" | "almoco" | "lanche" | "jantar";
+    menuId?: string;
   };
   generatorConfig?: {
     focus: string;
     mealTypes: ("Pequeno-almoço" | "Almoço" | "Lanche" | "Jantar")[];
   };
   favorites?: string[]; // IDs das receitas
+  favoritesPortions?: { adultsCount?: number; children?: { age: number }[] };
   customMenus?: CustomMenu[];
+  activeCustomMenuId?: string | null;
   activeListView?: {
-    type: 'week' | 'menu';
+    type: "week" | "menu";
     menuId?: string;
   };
 }
@@ -135,6 +139,14 @@ export interface CustomMenu {
   id: string;
   name: string;
   recipeIds: string[];
+  adultsCount?: number;
+  children?: { age: number }[];
 }
 
-export type Tab = "home" | "receitas" | "semana" | "despensa" | "lista" | "menus";
+export type Tab =
+  | "home"
+  | "receitas"
+  | "semana"
+  | "despensa"
+  | "lista"
+  | "menus";
